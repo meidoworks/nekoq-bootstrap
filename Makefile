@@ -5,7 +5,7 @@ GOFMT=$(GOCMD) fmt
 GOTEST=$(GOCMD) test
 BINARY_NAME=nekoq-bootstrap
 
-all: test build
+all: clean test build
 build:
 	$(GOFMT) ./...
 	$(GOBUILD) -v
@@ -14,6 +14,6 @@ test:
 clean:
 	$(GOCLEAN)
 run:
+	$(GOFMT) ./...
 	$(GOBUILD) -v
-	./$(BINARY_NAME)
-.PHONY: all
+	./$(BINARY_NAME) -port=10053
