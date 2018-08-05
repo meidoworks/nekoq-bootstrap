@@ -8,12 +8,12 @@ BINARY_NAME=nekoq-bootstrap
 all: clean test build
 build:
 	$(GOFMT) ./...
-	$(GOBUILD) -v
+	$(GOBUILD) -v -o ./$(BINARY_NAME) ./cmd
 test:
 	$(GOTEST) -v ./...
 clean:
-	$(GOCLEAN)
+	rm -rf ./$(BINARY_NAME)
 run:
 	$(GOFMT) ./...
-	$(GOBUILD) -v
+	$(GOBUILD) -v -o ./$(BINARY_NAME) ./cmd
 	./$(BINARY_NAME) -port=10053

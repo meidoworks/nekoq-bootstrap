@@ -1,1 +1,1 @@
-package main // import "goimport.moetang.info/nekoq-bootstrap"
+package bootstrap // import "goimport.moetang.info/nekoq-bootstrap"
