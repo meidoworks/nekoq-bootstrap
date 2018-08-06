@@ -16,15 +16,21 @@ const (
 )
 
 type Record struct {
+	key string
+
+	priorityQueueIndex int
+	nextRecord         *Record
+
 	ExpireTime int64
 }
 
 type recordCacheSegment struct {
-	sync.RWMutex
+	sync.Mutex
 	// get record
 	recordMap map[string]*Record
 	// eviction
 	head *Record
+	tail *Record
 	// timeout
 	priorityQueue []*Record
 	// slots
@@ -41,21 +47,44 @@ func (this *recordCacheSegment) init(slots int) {
 }
 
 func (this *recordCacheSegment) Get(key string) (record *Record) {
-	this.RLock()
+	this.Lock()
 	record = this.recordMap[key]
-	//TODO try to evict keys
-	this.RUnlock()
+	//TODO touch record
+	// try to evict keys
+	this.tryToEvict(false)
+	this.Unlock()
 	return
 }
 
 func (this *recordCacheSegment) Put(key string, record *Record) {
+	record.key = key
 	this.Lock()
+	// try to delete exists
+	this.internalDel(key)
 	if this.count >= this.slots {
-		//TODO force evict keys
+		// force evict a key
+		this.tryToEvict(true)
 	}
 	//TODO put
-	//TODO try to evict keys
+	// try to evict keys
+	this.tryToEvict(false)
 	this.Unlock()
+}
+
+func (this *recordCacheSegment) Del(key string) (record *Record) {
+	this.Lock()
+	record = this.internalDel(key)
+	// try to evict keys
+	this.tryToEvict(false)
+	this.Unlock()
+}
+
+func (this *recordCacheSegment) internalDel(key string) (record *Record) {
+	//TODO delete item
+}
+
+func (this *recordCacheSegment) tryToEvict(force bool) {
+	//TODO
 }
 
 type DnsRecordCache struct {
@@ -89,6 +118,11 @@ func (this *DnsRecordCache) Get(recordType RecordType, domain string) *Record {
 func (this *DnsRecordCache) Put(recordType RecordType, domain string, record *Record) {
 	var key = domain + string(recordType)
 	this.segments[this.segment(key)].Put(key, record)
+}
+
+func (this *DnsRecordCache) Del(recordType RecordType, domain string) *Record {
+	var key = domain + string(recordType)
+	return this.segments[this.segment(key)].Del(key)
 }
 
 func (this *DnsRecordCache) segment(key string) int {
