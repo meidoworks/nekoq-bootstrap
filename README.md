@@ -5,6 +5,7 @@
 [ ] dns
 [ ] consistency store
 [ ] dns tcp
+[ ] dns cache
 
 ## 2. TODO Feature list
 
@@ -14,3 +15,7 @@
 [ ] upstream dns server
 [ ] bootstrap service
 [ ] web manager
+
+###future feature list
+
+[ ] authority server
