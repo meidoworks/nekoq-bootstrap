@@ -20,6 +20,7 @@ type Record struct {
 
 	priorityQueueIndex int
 	nextRecord         *Record
+	prevRecord         *Record
 
 	ExpireTime int64
 }
@@ -37,19 +38,31 @@ type recordCacheSegment struct {
 	slots int
 	// count
 	count int
+	// maxEvict
+	maxEvict int
 }
 
-func (this *recordCacheSegment) init(slots int) {
+func (this *recordCacheSegment) init(slots int, maxEvict int) {
 	this.recordMap = make(map[string]*Record, slots)
 	this.priorityQueue = make([]*Record, slots)
 	this.slots = slots
 	this.count = 0
+	this.maxEvict = maxEvict
 }
 
 func (this *recordCacheSegment) Get(key string) (record *Record) {
 	this.Lock()
-	record = this.recordMap[key]
-	//TODO touch record
+	var ok bool
+	record, ok = this.recordMap[key]
+	if ok {
+		// touch record
+		{
+			// remove
+			this.removeFromLRU(record)
+			// insert first
+			this.insertFirstLRU(record)
+		}
+	}
 	// try to evict keys
 	this.tryToEvict(false)
 	this.Unlock()
@@ -65,7 +78,13 @@ func (this *recordCacheSegment) Put(key string, record *Record) {
 		// force evict a key
 		this.tryToEvict(true)
 	}
-	//TODO put
+	// put
+	{
+		this.recordMap[key] = record
+		this.insertFirstLRU(record)
+		this.insertPriorityQueue(record)
+		this.count += 1
+	}
 	// try to evict keys
 	this.tryToEvict(false)
 	this.Unlock()
@@ -77,14 +96,72 @@ func (this *recordCacheSegment) Del(key string) (record *Record) {
 	// try to evict keys
 	this.tryToEvict(false)
 	this.Unlock()
+	return
 }
 
 func (this *recordCacheSegment) internalDel(key string) (record *Record) {
-	//TODO delete item
+	// delete item
+	var ok bool
+	record, ok = this.recordMap[key]
+	if ok {
+		delete(this.recordMap, key)
+		this.removeFromLRU(record)
+		// remove from queue
+		this.removeFromPriorityQueue(record)
+		this.count -= 1
+	}
+	return
 }
 
 func (this *recordCacheSegment) tryToEvict(force bool) {
 	//TODO
+}
+
+func (this *recordCacheSegment) insertPriorityQueue(record *Record) {
+	record.priorityQueueIndex = -1
+	//TODO
+}
+
+func (this *recordCacheSegment) removeFromPriorityQueue(record *Record) {
+	//TODO
+}
+
+func (this *recordCacheSegment) insertFirstLRU(record *Record) {
+	record.prevRecord = nil
+	record.nextRecord = nil
+
+	record.nextRecord = this.head
+	if this.head != nil {
+		this.head.prevRecord = record
+	}
+	this.head = record
+	if this.tail == nil {
+		this.tail = record
+	}
+}
+
+func (this *recordCacheSegment) removeFromLRU(record *Record) {
+	prevRecord := record.prevRecord
+	nextRecord := record.nextRecord
+	if prevRecord == nil { // head one
+		this.head = nextRecord
+		if nextRecord == nil {
+			// last one
+			this.tail = nil
+		} else {
+			// not last
+			nextRecord.prevRecord = nil
+		}
+	} else { // not head
+		prevRecord.nextRecord = nextRecord
+		if nextRecord != nil {
+			// not last
+			nextRecord.prevRecord = prevRecord
+		} else {
+			// last one
+			this.tail = prevRecord
+		}
+	}
 }
 
 type DnsRecordCache struct {
@@ -92,21 +169,21 @@ type DnsRecordCache struct {
 	segments map[int]*recordCacheSegment
 }
 
-func (this *DnsRecordCache) init(segments, slots int) {
+func (this *DnsRecordCache) init(segments, slots int, maxEvict int) {
 	//TODO multi segments support
 	segments = 1
 	this.segments = make(map[int]*recordCacheSegment, segments)
 	for i := 0; i < segments; i++ {
 		segment := new(recordCacheSegment)
-		segment.init(slots)
+		segment.init(slots, maxEvict)
 		this.segments[i] = segment
 	}
 	this.mask = 0
 }
 
-func New(segments, slots int) *DnsRecordCache {
+func New(segments, slots int, maxEvict int) *DnsRecordCache {
 	dns := new(DnsRecordCache)
-	dns.init(segments, slots)
+	dns.init(segments, slots, maxEvict)
 	return dns
 }
 
