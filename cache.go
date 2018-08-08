@@ -114,7 +114,11 @@ func (this *recordCacheSegment) internalDel(key string) (record *Record) {
 }
 
 func (this *recordCacheSegment) tryToEvict(force bool) {
-	//TODO
+	var noEvict = true
+	//TODO evict from PriorityQueue
+	if force && noEvict {
+		//TODO evict last from LRU
+	}
 }
 
 func (this *recordCacheSegment) insertPriorityQueue(record *Record) {
@@ -170,15 +174,23 @@ type DnsRecordCache struct {
 }
 
 func (this *DnsRecordCache) init(segments, slots int, maxEvict int) {
-	//TODO multi segments support
-	segments = 1
+	// multi segments support
+	var i = 1
+	for ; segments > i && i > 0; i <<= 1 {
+	}
+	if i > 0 {
+		segments = i
+		this.mask = i - 1
+	} else {
+		segments = 1
+		this.mask = 0
+	}
 	this.segments = make(map[int]*recordCacheSegment, segments)
 	for i := 0; i < segments; i++ {
 		segment := new(recordCacheSegment)
 		segment.init(slots, maxEvict)
 		this.segments[i] = segment
 	}
-	this.mask = 0
 }
 
 func New(segments, slots int, maxEvict int) *DnsRecordCache {
