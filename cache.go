@@ -1,6 +1,9 @@
 package bootstrap
 
-import "sync"
+import (
+	"sync"
+	"time"
+)
 
 type RecordType string
 
@@ -51,6 +54,7 @@ func (this *recordCacheSegment) init(slots int, maxEvict int) {
 }
 
 func (this *recordCacheSegment) Get(key string) (record *Record) {
+	now := now()
 	this.Lock()
 	var ok bool
 	record, ok = this.recordMap[key]
@@ -64,19 +68,20 @@ func (this *recordCacheSegment) Get(key string) (record *Record) {
 		}
 	}
 	// try to evict keys
-	this.tryToEvict(false)
+	this.tryToEvict(false, now)
 	this.Unlock()
 	return
 }
 
 func (this *recordCacheSegment) Put(key string, record *Record) {
+	now := now()
 	record.key = key
 	this.Lock()
 	// try to delete exists
 	this.internalDel(key)
 	if this.count >= this.slots {
 		// force evict a key
-		this.tryToEvict(true)
+		this.tryToEvict(true, now)
 	}
 	// put
 	{
@@ -86,15 +91,16 @@ func (this *recordCacheSegment) Put(key string, record *Record) {
 		this.count += 1
 	}
 	// try to evict keys
-	this.tryToEvict(false)
+	this.tryToEvict(false, now)
 	this.Unlock()
 }
 
 func (this *recordCacheSegment) Del(key string) (record *Record) {
+	now := now()
 	this.Lock()
 	record = this.internalDel(key)
 	// try to evict keys
-	this.tryToEvict(false)
+	this.tryToEvict(false, now)
 	this.Unlock()
 	return
 }
@@ -113,7 +119,7 @@ func (this *recordCacheSegment) internalDel(key string) (record *Record) {
 	return
 }
 
-func (this *recordCacheSegment) tryToEvict(force bool) {
+func (this *recordCacheSegment) tryToEvict(force bool, currentTime int64) {
 	var noEvict = true
 	//TODO evict from PriorityQueue
 	if force && noEvict {
@@ -220,4 +226,8 @@ func (this *DnsRecordCache) segment(key string) int {
 		hash = 31*hash + (int(key[i]) & 0xff)
 	}
 	return hash & this.mask
+}
+
+func now() int64 {
+	return time.Now().Unix()
 }
