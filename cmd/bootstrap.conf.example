@@ -1,21 +1,14 @@
 # this file is an example of nekoq-bootstrap
 
-# core functions
-[bootstrap]
+# main
+[main]
 enable.webmanager=true
 enable.dns=true
 enable.bootstrap=true
 
 [dns.frontend]
 listen.addr=udp://0.0.0.0:10053
-quorum.name=example.dns
-quorum.id=node1.example.dns
-# quorum listening address
-quorum.listen=tcp://0.0.0.0:10001
-# quorum list
-quorum.list.0=tcp://127.0.0.1:10001
-quorum.list.1=tcp://127.0.0.2:10001
-quorum.list.2=tcp://127.0.0.3:10001
+upstream=udp://192.168.1.1:53
 
 [store]
 
@@ -24,5 +17,14 @@ quorum.list.2=tcp://127.0.0.3:10001
 [webmanager]
 listen.addr=tcp://0.0.0.0:10002
 
-[bootstrap]
+# core functions
+[core]
+quorum.name=example.dns
+quorum.id=node1.example.dns
+# quorum listening address
+quorum.listen=tcp://0.0.0.0:10001
+# quorum list
+quorum.list.0=tcp://127.0.0.1:10001
+quorum.list.1=tcp://127.0.0.2:10001
+quorum.list.2=tcp://127.0.0.3:10001
 
