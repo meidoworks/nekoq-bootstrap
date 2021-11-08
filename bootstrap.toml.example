@@ -1,0 +1,32 @@
+# This is the example file of NekoQ-Bootstrap configuration
+
+[main]
+storage_provider="mem"
+debug=true
+
+[cluster]
+# Checking both cluster_name and cluster secret when joining cluster
+cluster_name="example_cluster"
+cluster_secret="Pa$sw0rd"
+# Node name should be unique in the same cluster
+# Otherwise unexpected behavior will happen
+node_name="node1.example.dns"
+listener="http://0.0.0.0:18081"
+
+[cluster.nodes]
+"node1.example.dns"="http://node1.example.dns:18081"
+
+[http]
+listener="tcp://0.0.0.0:18080"
+enable_auth=true
+access_password="Pa$sw0rd"
+
+[dns]
+enable=true
+listener="udp://0.0.0.0:8053"
+http_listener="tcp://0.0.0.0:8153"
+
+[dns.static_rule.A]
+# Suggest to add NekoQ-bootstrap cluster in this section as well
+# CLuster node resolution wil first use these configurations
+"node1.example.dns"="127.0.0.1"
