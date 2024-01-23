@@ -28,5 +28,5 @@ http_listener="tcp://0.0.0.0:8153"
 
 [dns.static_rule.A]
 # Suggest to add NekoQ-bootstrap cluster in this section as well
-# CLuster node resolution wil first use these configurations
+# Cluster node resolution wil first use these configurations
 "node1.example.dns"="127.0.0.1"
