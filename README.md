@@ -21,7 +21,7 @@ In order to make NekoQ-Bootstrap as simple as possible, the usecases are kept as
  │                                                  │   │                                                  │
  │ ┌─────────────────┐         ┌─────────────────┐  │   │  ┌─────────────────┐         ┌─────────────────┐ │
  │ │                 │         │                 ├──┼───┼─►│                 │         │                 │ │
- │ │ Nekoq Bootstrap │◄────────┤ Nekoq Discovery │  │   │  │ Nekoq Discovery ├────────►│ Nekoq Bootstrap │ │
+ │ │ NekoQ Bootstrap │◄────────┤ NekoQ Discovery │  │   │  │ NekoQ Discovery ├────────►│ NekoQ Bootstrap │ │
  │ │     Cluster     │         │                 │◄─┼───┼──┤                 │         │     Cluster     │ │
  │ └─────────────────┘◄┐     ┌►└─────────────────┘  │   │  └─────────────────┘◄┐     ┌►└─────────────────┘ │
  │                     │     │                      │   │                      │     │                     │
@@ -31,7 +31,7 @@ In order to make NekoQ-Bootstrap as simple as possible, the usecases are kept as
  │                     │     │                      │   │                      │     │                     │
  │               ┌─────┴─────┴─────┐                │   │                ┌─────┴─────┴─────┐               │
  │               │                 │                │   │                │                 │               │
- │               │ Nekoq Services  │                │   │                │ Nekoq Services  │               │
+ │               │ NekoQ Services  │                │   │                │ NekoQ Services  │               │
  │               │                 │                │   │                │                 │               │
  │               └─────────────────┘                │   │                └─────────────────┘               │
  │                                                  │   │                                                  │
@@ -129,6 +129,10 @@ However, the drawbacks of this design is:
 
 1. If network splits, it can cause brain split as no consistency protocol runs to guarantee the majority.
 2. Data sync may great impact the network infrastructure even when full data sync happens.
+
+### Dependency Principles
+
+* Keep as minimum dependencies as possible
 
 ## 5. Changelog
 
