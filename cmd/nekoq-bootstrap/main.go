@@ -9,6 +9,8 @@ import (
 	"syscall"
 
 	"github.com/BurntSushi/toml"
+	"github.com/google/gops/agent"
+
 	bootstrap "github.com/meidoworks/nekoq-bootstrap"
 )
 
@@ -40,6 +42,11 @@ type Config struct {
 }
 
 func main() {
+	// init gops
+	if err := agent.Listen(agent.Options{}); err != nil {
+		log.Fatal(err)
+	}
+
 	config := new(Config)
 	m, err := toml.DecodeFile("bootstrap.toml", config)
 	if err != nil {
