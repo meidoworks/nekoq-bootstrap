@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/peterbourgon/diskv/v3"
+
+	"github.com/meidoworks/nekoq-bootstrap/internal/iface"
 )
 
 type DiskvStorage struct {
@@ -57,4 +59,38 @@ func (d *DiskvStorage) Get(k []byte) ([]byte, bool, error) {
 func diskvSha256prefix(s string) string {
 	v := sha256.Sum256([]byte(s))
 	return hex.EncodeToString(v[:])[:4]
+}
+
+func (d *DiskvStorage) LatestSnapshotData(term int64) (*iface.Snapshot, error) {
+	kch := d.diskv.Keys(nil)
+	var keyList []string
+	for key := range kch {
+		if key == "" {
+			break
+		}
+		keyList = append(keyList, key)
+	}
+	snapshot := new(iface.Snapshot)
+	for _, key := range keyList {
+		if key == VersionKeyString {
+			continue
+		} else {
+			k := []byte(key)
+			v, found, err := d.Get(k)
+			if err != nil {
+				return nil, err
+			}
+			if found {
+				snapshot.Entries = append(snapshot.Entries, struct {
+					K []byte
+					V []byte
+				}{K: k, V: v})
+			}
+		}
+	}
+	return snapshot, nil //Note: DiskvStorage currently doesn't support SequenceId field
+}
+
+func (d *DiskvStorage) Initialize() error {
+	return nil
 }

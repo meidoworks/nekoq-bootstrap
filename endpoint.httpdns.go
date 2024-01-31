@@ -3,7 +3,7 @@ package bootstrap
 import (
 	"encoding/base64"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -112,7 +112,7 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 		}
 		reqBin = requestBinary
 	case http.MethodPost:
-		requestBinary, err := ioutil.ReadAll(r.Body)
+		requestBinary, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Println("[ERROR] read dns raw error:", err)
 			w.WriteHeader(400)
