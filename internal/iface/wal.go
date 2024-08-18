@@ -1,5 +1,7 @@
 package iface
 
+type LogEntry []byte
+
 type Wal interface {
 	WriteEntry([]byte) (SequenceId, error)
 	WriteEntryWithFullPage([]byte) (SequenceId, error)
