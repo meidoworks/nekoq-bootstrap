@@ -46,6 +46,8 @@ func (r *RecordAHandler) HandleQuestion(m *dns.Msg) (*dns.Msg, error) {
 	result, err := r.DnsStorage.ResolveDomain(domain, shared.DomainTypeA)
 	if errors.Is(err, shared.ErrStorageNotFound) {
 		return r.ParentRecordHandler.HandleQuestion(m)
+	} else if err != nil {
+		return nil, err
 	}
 
 	reply := new(dns.Msg)

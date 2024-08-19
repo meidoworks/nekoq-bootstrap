@@ -11,7 +11,7 @@ type NotFoundUpstreamDns struct {
 
 func (u NotFoundUpstreamDns) HandleQuestion(m *dns.Msg) (*dns.Msg, error) {
 	reply := new(dns.Msg)
-	reply.SetReply(m)
+	reply.SetRcode(m, dns.RcodeNameError)
 	return reply, nil
 }
 
