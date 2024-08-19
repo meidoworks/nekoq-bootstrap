@@ -81,10 +81,14 @@ Shared component types should be:
 * [X] DNS over http - rfc8484
 * [ ] DNS over https - rfc8484
 * [ ] DNS service discovery - AAAA/MX/SRV/TXT/CNAME
+* [ ] DNS service discovery - SOA/PTR
 * [ ] DNS Sec
 * [ ] DNS TCP
 * [ ] Recursive DNS
 * [ ] Authority DNS Server
+* [ ] DNS caching and TTL
+* [ ] DNS recursion support
+* [ ] DNS Authoritative
 
 ### Http module
 

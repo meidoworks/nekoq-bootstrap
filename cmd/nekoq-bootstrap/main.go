@@ -12,6 +12,7 @@ import (
 	"github.com/google/gops/agent"
 
 	bootstrap "github.com/meidoworks/nekoq-bootstrap"
+	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
 )
 
 type Config struct {
@@ -27,10 +28,11 @@ type Config struct {
 		Nodes         map[string]string `toml:"nodes"`
 	} `toml:"cluster"`
 	Dns struct {
-		Enable      bool   `toml:"enable"`
-		Address     string `toml:"listener"`
-		HttpAddress string `toml:"http_listener"`
-		StaticRules struct {
+		Enable             bool     `toml:"enable"`
+		Address            string   `toml:"listener"`
+		HttpAddress        string   `toml:"http_listener"`
+		UpstreamDnsServers []string `toml:"upstream_dns_servers"`
+		StaticRules        struct {
 			A map[string]string `toml:"A"`
 		} `toml:"static_rule"`
 	} `toml:"dns"`
@@ -91,20 +93,16 @@ func main() {
 	// dns
 	if config.Dns.Enable {
 		for k, v := range config.Dns.StaticRules.A {
-			storage.PutDomain(k, v, bootstrap.DomainTypeA)
+			storage.PutDomain(k, v, shared.DomainTypeA)
 		}
 
-		endpoint, err := bootstrap.NewDnsEndpoint(config.Dns.Address, storage)
+		endpoint, err := bootstrap.NewDnsEndpoint(config.Dns.Address, storage, config.Main.Debug)
 		if err != nil {
 			panic(err)
 		}
-		httpEndpoint, err := bootstrap.NewHttpDns(config.Dns.HttpAddress, storage)
+		httpEndpoint, err := bootstrap.NewHttpDns(config.Dns.HttpAddress, endpoint, config.Main.Debug)
 		if err != nil {
 			panic(err)
-		}
-		if config.Main.Debug {
-			endpoint.DebugPrintDnsRequest = true
-			httpEndpoint.DebugPrintDnsRequest = true
 		}
 
 		log.Println("[INFO] start dns module at", config.Dns.Address)

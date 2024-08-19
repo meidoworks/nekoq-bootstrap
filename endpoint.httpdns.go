@@ -19,28 +19,29 @@ const (
 )
 
 type DnsHttp struct {
-	Storage Storage
-	Router  *httprouter.Router
+	Router *httprouter.Router
 
 	Addr string
 
+	endpoint             *DnsEndpoint
 	DebugPrintDnsRequest bool
 }
 
-func NewHttpDns(addr string, storage Storage) (*DnsHttp, error) {
+func NewHttpDns(addr string, endpoint *DnsEndpoint, debug bool) (*DnsHttp, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
 	}
 
 	r := new(DnsHttp)
-	r.Storage = storage
 	r.Addr = u.Host
 
 	router := httprouter.New()
 	router.GET("/dns-query", r.dnsQuery)
 	router.POST("/dns-query", r.dnsQuery)
 	r.Router = router
+	r.DebugPrintDnsRequest = debug
+	r.endpoint = endpoint
 
 	return r, nil
 }
@@ -136,7 +137,7 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 		return
 	}
 
-	reply := processDnsMsg(msg, this.Storage, this.DebugPrintDnsRequest)
+	reply := this.endpoint.processDnsMsg(msg)
 
 	w.Header().Set("Content-Type", "application/dns-message")
 	now := time.Now().UTC().Format(http.TimeFormat)

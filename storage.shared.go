@@ -1,13 +1,7 @@
 package bootstrap
 
-import "errors"
-
-var ErrStorageNotFound = errors.New("not found")
-
-type DomainType int
-
-const (
-	DomainTypeA = 1
+import (
+	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
 )
 
 type ServiceItem struct {
@@ -16,8 +10,8 @@ type ServiceItem struct {
 }
 
 type Storage interface {
-	ResolveDomain(domain string, domainType DomainType) (string, error)
-	PutDomain(domain, resolve string, domainType DomainType)
+	ResolveDomain(domain string, domainType shared.DomainType) (string, error)
+	PutDomain(domain, resolve string, domainType shared.DomainType)
 
 	GetServiceList(service string) ([]*ServiceItem, error)
 	PublishService(service string, item *ServiceItem) error

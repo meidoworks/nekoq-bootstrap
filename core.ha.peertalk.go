@@ -12,6 +12,8 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/julienschmidt/httprouter"
 	"github.com/miekg/dns"
+
+	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
 )
 
 const (
@@ -26,7 +28,7 @@ func (this *HaModule) innerUrlResolve(addr string) string {
 		panic(err)
 	}
 
-	r, err := this.Storage.ResolveDomain(dns.Fqdn(u.Hostname()), DomainTypeA)
+	r, err := this.Storage.ResolveDomain(dns.Fqdn(u.Hostname()), shared.DomainTypeA)
 	if err == nil {
 		u.Host = fmt.Sprint(r, ":", u.Port())
 	}

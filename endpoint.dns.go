@@ -2,11 +2,13 @@ package bootstrap
 
 import (
 	"errors"
+	"fmt"
 	"log"
-	"net"
 	"net/url"
 
 	"github.com/miekg/dns"
+
+	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
 )
 
 type DnsEndpoint struct {
@@ -16,9 +18,11 @@ type DnsEndpoint struct {
 	Addr string
 
 	DebugPrintDnsRequest bool
+
+	HandlerMapping map[uint16]dnscore.DnsRecordHandler
 }
 
-func NewDnsEndpoint(addr string, storage Storage) (*DnsEndpoint, error) {
+func NewDnsEndpoint(addr string, storage Storage, debug bool) (*DnsEndpoint, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
@@ -31,6 +35,12 @@ func NewDnsEndpoint(addr string, storage Storage) (*DnsEndpoint, error) {
 		Addr:    u.Host,
 		Net:     u.Scheme,
 		Handler: endpoint,
+	}
+	endpoint.DebugPrintDnsRequest = debug
+	endpoint.HandlerMapping = map[uint16]dnscore.DnsRecordHandler{}
+	// init handlers
+	{
+		endpoint.HandlerMapping[dns.TypeA] = dnscore.NewRecordAHandler(nil, storage, endpoint.DebugPrintDnsRequest)
 	}
 
 	return endpoint, nil
@@ -48,34 +58,26 @@ func (this *DnsEndpoint) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		}
 	}()
 
-	reply := processDnsMsg(r, this.Storage, this.DebugPrintDnsRequest)
+	reply := this.processDnsMsg(r)
 	if err := w.WriteMsg(reply); err != nil {
 		panic(err)
 	}
 }
 
-func processDnsMsg(r *dns.Msg, storage Storage, debugOutput bool) *dns.Msg {
-	if r.Question[0].Qtype != dns.TypeA {
-		panic(errors.New("Request type is not A record"))
-	}
-	domain := r.Question[0].Name
-	if debugOutput {
-		log.Println("[DEBUG] domain:", domain)
-	}
-
-	result, err := storage.ResolveDomain(domain, DomainTypeA)
-	if err == ErrStorageNotFound {
+func (this *DnsEndpoint) processDnsMsg(r *dns.Msg) *dns.Msg {
+	if r.Opcode == dns.OpcodeQuery && len(r.Question) > 1 {
+		// treat question count > 1 as incorrectly-formatted message according to rfc9619
 		reply := new(dns.Msg)
-		reply.SetReply(r)
-		return reply
+		return reply.SetRcodeFormatError(r)
 	}
 
-	reply := new(dns.Msg)
-	reply.SetReply(r)
-	rr := &dns.A{
-		Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
-		A:   net.ParseIP(result),
+	handler, ok := this.HandlerMapping[r.Question[0].Qtype]
+	if !ok {
+		panic(errors.New("unknown request type:" + fmt.Sprint(r.Question[0].Qtype)))
 	}
-	reply.Answer = append(reply.Answer, rr)
-	return reply
+	res, err := handler.HandleQuestion(r)
+	if err != nil {
+		panic(errors.New("dns request failed. " + err.Error()))
+	}
+	return res
 }

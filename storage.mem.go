@@ -6,6 +6,8 @@ import (
 	"sync"
 
 	"github.com/miekg/dns"
+
+	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
 )
 
 const (
@@ -346,20 +348,20 @@ func (m *MemStore) Unwatch(node string) error {
 	return nil
 }
 
-func (m *MemStore) PutDomain(domain, resolve string, domainType DomainType) {
+func (m *MemStore) PutDomain(domain, resolve string, domainType shared.DomainType) {
 	defer m.rwlock.Unlock()
 	m.rwlock.Lock()
 
 	m.domains[dns.Fqdn(domain)] = resolve
 }
 
-func (m *MemStore) ResolveDomain(domain string, domainType DomainType) (string, error) {
+func (m *MemStore) ResolveDomain(domain string, domainType shared.DomainType) (string, error) {
 	defer m.rwlock.RUnlock()
 	m.rwlock.RLock()
 
 	r, ok := m.domains[domain]
 	if !ok {
-		return "", ErrStorageNotFound
+		return "", shared.ErrStorageNotFound
 	}
 	return r, nil
 }
