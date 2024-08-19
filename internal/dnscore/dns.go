@@ -12,4 +12,5 @@ type DnsRecordHandler interface {
 
 type DnsStorage interface {
 	ResolveDomain(domain string, domainType shared.DomainType) (string, error)
+	PutDomain(domain, resolve string, domainType shared.DomainType)
 }

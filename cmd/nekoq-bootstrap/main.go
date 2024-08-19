@@ -12,6 +12,7 @@ import (
 	"github.com/google/gops/agent"
 
 	bootstrap "github.com/meidoworks/nekoq-bootstrap"
+	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
 	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
 )
 
@@ -36,6 +37,7 @@ type Config struct {
 			A   map[string]string `toml:"A"`
 			TXT map[string]string `toml:"TXT"`
 			SRV map[string]string `toml:"SRV"`
+			PTR map[string]string `toml:"PTR"`
 		} `toml:"static_rule"`
 	} `toml:"dns"`
 	Http struct {
@@ -104,6 +106,13 @@ func main() {
 			storage.PutDomain(k, v, shared.DomainTypeSrv)
 		}
 
+		// inject ptr and overwrite low priorities
+		for k, v := range config.Dns.StaticRules.PTR {
+			if err := dnscore.AddIpReverseDnsToStorage(storage, k, v); err != nil {
+				panic(err)
+			}
+		}
+		// create services
 		endpoint, err := bootstrap.NewDnsEndpoint(config.Dns.Address, storage, config.Dns.UpstreamDnsServers, config.Main.Debug)
 		if err != nil {
 			panic(err)

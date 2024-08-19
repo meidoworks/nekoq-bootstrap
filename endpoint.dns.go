@@ -47,16 +47,17 @@ func NewDnsEndpoint(addr string, storage Storage, upstreams []string, debug bool
 		endpoint.HandlerMapping[dns.TypeA] = dnscore.NewRecordAHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 		endpoint.HandlerMapping[dns.TypeTXT] = dnscore.NewRecordTxtHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 		endpoint.HandlerMapping[dns.TypeSRV] = dnscore.NewRecordSRVHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
+		endpoint.HandlerMapping[dns.TypePTR] = dnscore.NewRecordPtrHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 	}
 
 	return endpoint, nil
 }
 
-func (this *DnsEndpoint) StartSync() error {
-	return this.Server.ListenAndServe()
+func (d *DnsEndpoint) StartSync() error {
+	return d.Server.ListenAndServe()
 }
 
-func (this *DnsEndpoint) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
+func (d *DnsEndpoint) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -64,20 +65,20 @@ func (this *DnsEndpoint) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		}
 	}()
 
-	reply := this.processDnsMsg(r)
+	reply := d.processDnsMsg(r)
 	if err := w.WriteMsg(reply); err != nil {
 		panic(err)
 	}
 }
 
-func (this *DnsEndpoint) processDnsMsg(r *dns.Msg) *dns.Msg {
+func (d *DnsEndpoint) processDnsMsg(r *dns.Msg) *dns.Msg {
 	if r.Opcode == dns.OpcodeQuery && len(r.Question) > 1 {
 		// treat question count > 1 as incorrectly-formatted message according to rfc9619
 		reply := new(dns.Msg)
 		return reply.SetRcodeFormatError(r)
 	}
 
-	handler, ok := this.HandlerMapping[r.Question[0].Qtype]
+	handler, ok := d.HandlerMapping[r.Question[0].Qtype]
 	if !ok {
 		panic(errors.New("unknown request type:" + fmt.Sprint(r.Question[0].Qtype)))
 	}

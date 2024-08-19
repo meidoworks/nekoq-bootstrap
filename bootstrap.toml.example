@@ -37,3 +37,6 @@ upstream_dns_servers = ["192.168.1.111"]
 
 [dns.static_rule.SRV]
 "node1.example.dns"='{"priority":10,"weight":20,"port":30,"target":"service.node1.example.dns"}'
+
+[dns.static_rule.PTR]
+"8.8.8.8" = 'demo1.example.com'
