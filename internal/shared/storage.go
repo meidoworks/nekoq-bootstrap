@@ -5,7 +5,9 @@ import "errors"
 type DomainType int
 
 const (
-	DomainTypeA = 1
+	DomainTypeA DomainType = iota + 1
+	DomainTypeTxt
+	DomainTypeSrv
 )
 
 var ErrStorageNotFound = errors.New("not found")

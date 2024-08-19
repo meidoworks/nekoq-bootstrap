@@ -33,7 +33,8 @@ type Config struct {
 		HttpAddress        string   `toml:"http_listener"`
 		UpstreamDnsServers []string `toml:"upstream_dns_servers"`
 		StaticRules        struct {
-			A map[string]string `toml:"A"`
+			A   map[string]string `toml:"A"`
+			TXT map[string]string `toml:"TXT"`
 		} `toml:"static_rule"`
 	} `toml:"dns"`
 	Http struct {
@@ -94,6 +95,9 @@ func main() {
 	if config.Dns.Enable {
 		for k, v := range config.Dns.StaticRules.A {
 			storage.PutDomain(k, v, shared.DomainTypeA)
+		}
+		for k, v := range config.Dns.StaticRules.TXT {
+			storage.PutDomain(k, v, shared.DomainTypeTxt)
 		}
 
 		endpoint, err := bootstrap.NewDnsEndpoint(config.Dns.Address, storage, config.Dns.UpstreamDnsServers, config.Main.Debug)

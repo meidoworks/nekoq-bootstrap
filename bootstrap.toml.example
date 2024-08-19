@@ -31,3 +31,6 @@ upstream_dns_servers = ["192.168.1.111"]
 # Suggest to add NekoQ-bootstrap cluster in this section as well
 # Cluster node resolution wil first use these configurations
 "node1.example.dns"="127.0.0.1"
+
+[dns.static_rule.TXT]
+"node1.example.dns"="Hello World"

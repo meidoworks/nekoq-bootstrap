@@ -11,12 +11,12 @@ import (
 )
 
 type ParentRecordHandler struct {
-	ParentRecordHandler DnsRecordHandler
+	Handler DnsRecordHandler
 }
 
 func (c *ParentRecordHandler) HandleQuestion(m *dns.Msg) (*dns.Msg, error) {
-	if c.ParentRecordHandler != nil {
-		return c.ParentRecordHandler.HandleQuestion(m)
+	if c.Handler != nil {
+		return c.Handler.HandleQuestion(m)
 	} else {
 		return NotFoundUpstreamDns{}.HandleQuestion(m)
 	}
@@ -31,7 +31,7 @@ type RecordAHandler struct {
 
 func NewRecordAHandler(parent DnsRecordHandler, storage DnsStorage, debug bool) DnsRecordHandler {
 	return &RecordAHandler{
-		ParentRecordHandler: &ParentRecordHandler{ParentRecordHandler: parent},
+		ParentRecordHandler: &ParentRecordHandler{Handler: parent},
 		DnsStorage:          storage,
 		debugOutput:         debug,
 	}

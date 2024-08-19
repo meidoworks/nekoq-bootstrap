@@ -15,8 +15,8 @@ const (
 )
 
 type MemStore struct {
-	domains  map[string]string
-	services map[string]map[string]struct {
+	staticDomainMapping map[shared.DomainType]map[string]string
+	services            map[string]map[string]struct {
 		Addr string
 	}
 
@@ -352,14 +352,24 @@ func (m *MemStore) PutDomain(domain, resolve string, domainType shared.DomainTyp
 	defer m.rwlock.Unlock()
 	m.rwlock.Lock()
 
-	m.domains[dns.Fqdn(domain)] = resolve
+	fqdn := dns.Fqdn(domain)
+	sub, ok := m.staticDomainMapping[domainType]
+	if !ok {
+		sub = make(map[string]string)
+		m.staticDomainMapping[domainType] = sub
+	}
+	sub[fqdn] = resolve
 }
 
 func (m *MemStore) ResolveDomain(domain string, domainType shared.DomainType) (string, error) {
 	defer m.rwlock.RUnlock()
 	m.rwlock.RLock()
 
-	r, ok := m.domains[domain]
+	sub, ok := m.staticDomainMapping[domainType]
+	if !ok {
+		return "", shared.ErrStorageNotFound
+	}
+	r, ok := sub[domain]
 	if !ok {
 		return "", shared.ErrStorageNotFound
 	}
@@ -370,7 +380,7 @@ var _ Storage = new(MemStore)
 
 func NewMemStore() *MemStore {
 	store := new(MemStore)
-	store.domains = make(map[string]string)
+	store.staticDomainMapping = make(map[shared.DomainType]map[string]string)
 	store.services = make(map[string]map[string]struct {
 		Addr string
 	})
