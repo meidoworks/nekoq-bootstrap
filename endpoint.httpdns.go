@@ -12,6 +12,8 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/miekg/dns"
+
+	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
 )
 
 const (
@@ -23,11 +25,11 @@ type DnsHttp struct {
 
 	Addr string
 
-	endpoint             *DnsEndpoint
+	endpoint             *dnscore.DnsEndpoint
 	DebugPrintDnsRequest bool
 }
 
-func NewHttpDns(addr string, endpoint *DnsEndpoint, debug bool) (*DnsHttp, error) {
+func NewHttpDns(addr string, endpoint *dnscore.DnsEndpoint, debug bool) (*DnsHttp, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
@@ -137,7 +139,7 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 		return
 	}
 
-	reply := this.endpoint.processDnsMsg(msg)
+	reply := this.endpoint.ProcessDnsMsg(msg)
 
 	w.Header().Set("Content-Type", "application/dns-message")
 	now := time.Now().UTC().Format(http.TimeFormat)

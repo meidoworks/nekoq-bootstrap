@@ -1,4 +1,4 @@
-package bootstrap
+package dnscore
 
 import (
 	"errors"
@@ -7,22 +7,20 @@ import (
 	"net/url"
 
 	"github.com/miekg/dns"
-
-	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
 )
 
 type DnsEndpoint struct {
-	Storage Storage
+	Storage DnsStorage
 	Server  *dns.Server
 
 	Addr string
 
 	DebugPrintDnsRequest bool
 
-	HandlerMapping map[uint16]dnscore.DnsRecordHandler
+	HandlerMapping map[uint16]DnsRecordHandler
 }
 
-func NewDnsEndpoint(addr string, storage Storage, upstreams []string, debug bool) (*DnsEndpoint, error) {
+func NewDnsEndpoint(addr string, storage DnsStorage, upstreams []string, debug bool) (*DnsEndpoint, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
@@ -37,17 +35,17 @@ func NewDnsEndpoint(addr string, storage Storage, upstreams []string, debug bool
 		Handler: endpoint,
 	}
 	endpoint.DebugPrintDnsRequest = debug
-	endpoint.HandlerMapping = map[uint16]dnscore.DnsRecordHandler{}
+	endpoint.HandlerMapping = map[uint16]DnsRecordHandler{}
 	// init handlers
 	{
-		var parentHandler dnscore.DnsRecordHandler
+		var parentHandler DnsRecordHandler
 		if len(upstreams) > 0 {
-			parentHandler = dnscore.NewUpstreamDNSWithSingle(upstreams[0])
+			parentHandler = NewUpstreamDNSWithSingle(upstreams[0])
 		}
-		endpoint.HandlerMapping[dns.TypeA] = dnscore.NewRecordAHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
-		endpoint.HandlerMapping[dns.TypeTXT] = dnscore.NewRecordTxtHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
-		endpoint.HandlerMapping[dns.TypeSRV] = dnscore.NewRecordSRVHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
-		endpoint.HandlerMapping[dns.TypePTR] = dnscore.NewRecordPtrHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
+		endpoint.HandlerMapping[dns.TypeA] = NewRecordAHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
+		endpoint.HandlerMapping[dns.TypeTXT] = NewRecordTxtHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
+		endpoint.HandlerMapping[dns.TypeSRV] = NewRecordSRVHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
+		endpoint.HandlerMapping[dns.TypePTR] = NewRecordPtrHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 	}
 
 	return endpoint, nil
@@ -65,13 +63,13 @@ func (d *DnsEndpoint) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		}
 	}()
 
-	reply := d.processDnsMsg(r)
+	reply := d.ProcessDnsMsg(r)
 	if err := w.WriteMsg(reply); err != nil {
 		panic(err)
 	}
 }
 
-func (d *DnsEndpoint) processDnsMsg(r *dns.Msg) *dns.Msg {
+func (d *DnsEndpoint) ProcessDnsMsg(r *dns.Msg) *dns.Msg {
 	if r.Opcode == dns.OpcodeQuery && len(r.Question) > 1 {
 		// treat question count > 1 as incorrectly-formatted message according to rfc9619
 		reply := new(dns.Msg)

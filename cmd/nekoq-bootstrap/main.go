@@ -113,7 +113,7 @@ func main() {
 			}
 		}
 		// create services
-		endpoint, err := bootstrap.NewDnsEndpoint(config.Dns.Address, storage, config.Dns.UpstreamDnsServers, config.Main.Debug)
+		endpoint, err := dnscore.NewDnsEndpoint(config.Dns.Address, storage, config.Dns.UpstreamDnsServers, config.Main.Debug)
 		if err != nil {
 			panic(err)
 		}
