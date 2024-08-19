@@ -35,6 +35,7 @@ type Config struct {
 		StaticRules        struct {
 			A   map[string]string `toml:"A"`
 			TXT map[string]string `toml:"TXT"`
+			SRV map[string]string `toml:"SRV"`
 		} `toml:"static_rule"`
 	} `toml:"dns"`
 	Http struct {
@@ -98,6 +99,9 @@ func main() {
 		}
 		for k, v := range config.Dns.StaticRules.TXT {
 			storage.PutDomain(k, v, shared.DomainTypeTxt)
+		}
+		for k, v := range config.Dns.StaticRules.SRV {
+			storage.PutDomain(k, v, shared.DomainTypeSrv)
 		}
 
 		endpoint, err := bootstrap.NewDnsEndpoint(config.Dns.Address, storage, config.Dns.UpstreamDnsServers, config.Main.Debug)
