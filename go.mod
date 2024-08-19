@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/BurntSushi/toml v1.4.0
-	github.com/fxamacker/cbor/v2 v2.6.0
+	github.com/fxamacker/cbor/v2 v2.7.0
 	github.com/go-resty/resty/v2 v2.14.0
 	github.com/google/gops v0.3.28
 	github.com/joomcode/redispipe v0.9.4

@@ -96,7 +96,7 @@ func main() {
 			storage.PutDomain(k, v, shared.DomainTypeA)
 		}
 
-		endpoint, err := bootstrap.NewDnsEndpoint(config.Dns.Address, storage, config.Main.Debug)
+		endpoint, err := bootstrap.NewDnsEndpoint(config.Dns.Address, storage, config.Dns.UpstreamDnsServers, config.Main.Debug)
 		if err != nil {
 			panic(err)
 		}

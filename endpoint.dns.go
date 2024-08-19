@@ -22,7 +22,7 @@ type DnsEndpoint struct {
 	HandlerMapping map[uint16]dnscore.DnsRecordHandler
 }
 
-func NewDnsEndpoint(addr string, storage Storage, debug bool) (*DnsEndpoint, error) {
+func NewDnsEndpoint(addr string, storage Storage, upstreams []string, debug bool) (*DnsEndpoint, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,11 @@ func NewDnsEndpoint(addr string, storage Storage, debug bool) (*DnsEndpoint, err
 	endpoint.HandlerMapping = map[uint16]dnscore.DnsRecordHandler{}
 	// init handlers
 	{
-		endpoint.HandlerMapping[dns.TypeA] = dnscore.NewRecordAHandler(nil, storage, endpoint.DebugPrintDnsRequest)
+		var parentHandler dnscore.DnsRecordHandler
+		if len(upstreams) > 0 {
+			parentHandler = dnscore.NewUpstreamDNSWithSingle(upstreams[0])
+		}
+		endpoint.HandlerMapping[dns.TypeA] = dnscore.NewRecordAHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 	}
 
 	return endpoint, nil

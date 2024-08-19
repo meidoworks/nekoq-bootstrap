@@ -78,6 +78,7 @@ Shared component types should be:
 ### DNS module
 
 * [X] DNS service discovery: A record
+* [X] DNS upstream name server support
 * [X] DNS over http - rfc8484
 * [ ] DNS over https - rfc8484
 * [ ] DNS service discovery - AAAA/MX/SRV/TXT/CNAME

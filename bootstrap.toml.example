@@ -25,7 +25,7 @@ access_password="Pa$sw0rd"
 enable=true
 listener="udp://0.0.0.0:8053"
 http_listener="tcp://0.0.0.0:8153"
-upstream_dns_servers = ["192.168.71.1"]
+upstream_dns_servers = ["192.168.1.111"]
 
 [dns.static_rule.A]
 # Suggest to add NekoQ-bootstrap cluster in this section as well
