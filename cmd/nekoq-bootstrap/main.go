@@ -117,7 +117,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		httpEndpoint, err := bootstrap.NewHttpDns(config.Dns.HttpAddress, endpoint, config.Main.Debug)
+		httpEndpoint, err := dnscore.NewHttpDns(config.Dns.HttpAddress, endpoint, config.Main.Debug)
 		if err != nil {
 			panic(err)
 		}

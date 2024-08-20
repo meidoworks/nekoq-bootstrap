@@ -1,4 +1,4 @@
-package bootstrap
+package dnscore
 
 import (
 	"encoding/base64"
@@ -13,8 +13,6 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/miekg/dns"
-
-	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
 )
 
 const (
@@ -26,11 +24,11 @@ type DnsHttp struct {
 
 	Addr string
 
-	endpoint             *dnscore.DnsEndpoint
+	endpoint             *DnsEndpoint
 	DebugPrintDnsRequest bool
 }
 
-func NewHttpDns(addr string, endpoint *dnscore.DnsEndpoint, debug bool) (*DnsHttp, error) {
+func NewHttpDns(addr string, endpoint *DnsEndpoint, debug bool) (*DnsHttp, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
@@ -54,7 +52,7 @@ func (this *DnsHttp) StartSync() error {
 }
 
 func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	reqCtx := dnscore.NewRequestContext()
+	reqCtx := NewRequestContext()
 
 	defer func() {
 		err := recover()
