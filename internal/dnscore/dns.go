@@ -7,7 +7,7 @@ import (
 )
 
 type DnsRecordHandler interface {
-	HandleQuestion(m *dns.Msg) (*dns.Msg, error)
+	HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error)
 }
 
 type DnsStorage interface {

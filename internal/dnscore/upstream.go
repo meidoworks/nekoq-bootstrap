@@ -9,7 +9,8 @@ import (
 type NotFoundUpstreamDns struct {
 }
 
-func (u NotFoundUpstreamDns) HandleQuestion(m *dns.Msg) (*dns.Msg, error) {
+func (u NotFoundUpstreamDns) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
+	ctx.AddTraceInfo("NotFoundUpstreamDns")
 	reply := new(dns.Msg)
 	reply.SetRcode(m, dns.RcodeNameError)
 	return reply, nil
@@ -34,7 +35,9 @@ func NewUpstreamDNSWithSingle(server string) *UpstreamDns {
 	}
 }
 
-func (u *UpstreamDns) HandleQuestion(m *dns.Msg) (*dns.Msg, error) {
+func (u *UpstreamDns) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
+	ctx.AddTraceInfo("UpstreamDns")
 	r, err := dns.Exchange(m, net.JoinHostPort(u.cfg.Servers[0], u.cfg.Port))
+	ctx.AddTraceInfoWithDnsAnswersIfNoError("UpstreamDns->", r, err)
 	return r, err
 }

@@ -14,11 +14,11 @@ type ParentRecordHandler struct {
 	Handler DnsRecordHandler
 }
 
-func (c *ParentRecordHandler) HandleQuestion(m *dns.Msg) (*dns.Msg, error) {
+func (c *ParentRecordHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
 	if c.Handler != nil {
-		return c.Handler.HandleQuestion(m)
+		return c.Handler.HandleQuestion(m, ctx)
 	} else {
-		return NotFoundUpstreamDns{}.HandleQuestion(m)
+		return NotFoundUpstreamDns{}.HandleQuestion(m, ctx)
 	}
 }
 
@@ -37,18 +37,20 @@ func NewRecordAHandler(parent DnsRecordHandler, storage DnsStorage, debug bool) 
 	}
 }
 
-func (r *RecordAHandler) HandleQuestion(m *dns.Msg) (*dns.Msg, error) {
+func (r *RecordAHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
 	domain := m.Question[0].Name
 	if r.debugOutput {
 		log.Println("[DEBUG][RecordAHandler] domain:", domain)
 	}
 
+	ctx.AddTraceInfo("RecordAHandler")
 	result, err := r.DnsStorage.ResolveDomain(domain, shared.DomainTypeA)
 	if errors.Is(err, shared.ErrStorageNotFound) {
-		return r.ParentRecordHandler.HandleQuestion(m)
+		return r.ParentRecordHandler.HandleQuestion(m, ctx)
 	} else if err != nil {
 		return nil, err
 	}
+	ctx.AddTraceInfo("RecordAHandler->" + result)
 
 	reply := new(dns.Msg)
 	reply.SetReply(m)

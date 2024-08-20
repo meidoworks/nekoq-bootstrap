@@ -83,7 +83,7 @@ Shared component types should be:
 * [X] DNS upstream name server support
 * [X] DNS over http - rfc8484
 * [ ] DNS over https - rfc8484
-* [ ] DNS service discovery - AAAA/MX/CNAME
+* [ ] DNS service discovery - AAAA/MX/CNAME(exclusive from A/AAAA)/Multiple A or AAAA for load balancing
 * [ ] DNS service discovery - SOA/PTR
 * [ ] DNS Sec
 * [ ] DNS TCP
@@ -92,6 +92,7 @@ Shared component types should be:
 * [ ] DNS caching and TTL
 * [ ] DNS recursion support
 * [ ] DNS Authoritative
+* [x] DNS resolve tracing log
 
 ### Http module
 
@@ -152,3 +153,13 @@ However, the drawbacks of this design is:
 * [X] Http module: query/register service
 * [X] HA module: data sync
 
+## Appendix A. References
+
+## Appendix B. Testing cases
+
+```text
+dig @127.0.0.1 -p 8053 node1.example.dns
+dig @127.0.0.1 -p 8053 node1.example.dns TXT
+dig @127.0.0.1 -p 8053 node1.example.dns SRV
+dig @127.0.0.1 -p 8053 8.8.8.8.in-addr.arpa PTR
+```

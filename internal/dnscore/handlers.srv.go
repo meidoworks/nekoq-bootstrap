@@ -25,18 +25,20 @@ func NewRecordSRVHandler(parent DnsRecordHandler, storage DnsStorage, debug bool
 	}
 }
 
-func (r *RecordSRVHandler) HandleQuestion(m *dns.Msg) (*dns.Msg, error) {
+func (r *RecordSRVHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
 	domain := m.Question[0].Name
 	if r.debugOutput {
 		log.Println("[DEBUG][RecordSRVHandler] domain:", domain)
 	}
 
+	ctx.AddTraceInfo("RecordSRVHandler")
 	result, err := r.DnsStorage.ResolveDomain(domain, shared.DomainTypeSrv)
 	if errors.Is(err, shared.ErrStorageNotFound) {
-		return r.ParentRecordHandler.HandleQuestion(m)
+		return r.ParentRecordHandler.HandleQuestion(m, ctx)
 	} else if err != nil {
 		return nil, err
 	}
+	ctx.AddTraceInfo("RecordSRVHandler->" + result)
 
 	var srvData = struct {
 		Priority uint16 `json:"priority"`

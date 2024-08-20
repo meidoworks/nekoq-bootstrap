@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -53,10 +54,16 @@ func (this *DnsHttp) StartSync() error {
 }
 
 func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	reqCtx := dnscore.NewRequestContext()
+
 	defer func() {
 		err := recover()
 		if err != nil {
 			log.Println("[ERROR] process dns-http request failed. information:", err)
+			reqCtx.AddTraceInfo("error occurs:" + fmt.Sprint(err))
+		}
+		if this.DebugPrintDnsRequest {
+			log.Println("[DEBUG] Domain resolve info via http-dns:", reqCtx.GetTraceInfoString())
 		}
 	}()
 
@@ -139,7 +146,7 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 		return
 	}
 
-	reply := this.endpoint.ProcessDnsMsg(msg)
+	reply := this.endpoint.ProcessDnsMsg(msg, reqCtx)
 
 	w.Header().Set("Content-Type", "application/dns-message")
 	now := time.Now().UTC().Format(http.TimeFormat)

@@ -56,31 +56,38 @@ func (d *DnsEndpoint) StartSync() error {
 }
 
 func (d *DnsEndpoint) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
+	reqCtx := NewRequestContext()
+
 	defer func() {
 		err := recover()
 		if err != nil {
 			log.Println("[ERROR] process dns request failed. information:", err)
+			reqCtx.AddTraceInfo("error occurs:" + fmt.Sprint(err))
+		}
+		if d.DebugPrintDnsRequest {
+			log.Println("[DEBUG] Domain resolve info:", reqCtx.GetTraceInfoString())
 		}
 	}()
 
-	reply := d.ProcessDnsMsg(r)
+	reply := d.ProcessDnsMsg(r, reqCtx)
 	if err := w.WriteMsg(reply); err != nil {
 		panic(err)
 	}
 }
 
-func (d *DnsEndpoint) ProcessDnsMsg(r *dns.Msg) *dns.Msg {
+func (d *DnsEndpoint) ProcessDnsMsg(r *dns.Msg, ctx *RequestContext) *dns.Msg {
 	if r.Opcode == dns.OpcodeQuery && len(r.Question) > 1 {
 		// treat question count > 1 as incorrectly-formatted message according to rfc9619
 		reply := new(dns.Msg)
 		return reply.SetRcodeFormatError(r)
 	}
 
+	ctx.AddTraceInfo(fmt.Sprint("resolve:t=", r.Question[0].Qtype, ",domain:", r.Question[0].Name))
 	handler, ok := d.HandlerMapping[r.Question[0].Qtype]
 	if !ok {
 		panic(errors.New("unknown request type:" + fmt.Sprint(r.Question[0].Qtype)))
 	}
-	res, err := handler.HandleQuestion(r)
+	res, err := handler.HandleQuestion(r, ctx)
 	if err != nil {
 		panic(errors.New("dns request failed. " + err.Error()))
 	}
