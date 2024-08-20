@@ -7,8 +7,7 @@ import (
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
-	"github.com/joomcode/redispipe/redis"
-	"github.com/joomcode/redispipe/redisconn"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/meidoworks/nekoq-bootstrap/internal/iface"
 )
@@ -81,7 +80,7 @@ func (r Resp2SimplePrimaryStandbyHandler) syncAndReg(args []iface.RespArg) (ifac
 type Resp2Client struct {
 	addr string
 
-	conn *redisconn.Connection
+	client *redis.Client
 }
 
 func NewResp2Client(addr string) *Resp2Client {
@@ -91,28 +90,24 @@ func NewResp2Client(addr string) *Resp2Client {
 }
 
 func (r *Resp2Client) doConnect() (iface.ReplicatorRole, error) {
-	if r.conn != nil {
+	if r.client != nil {
 		if role, err := r.role(); err != nil {
 			// abandon broken connection and restart a new
-			r.conn.Close()
-			r.conn = nil
+			r.client.Close()
+			r.client = nil
 		} else {
 			return role, nil
 		}
 	}
-	ctx, closeFn := context.WithTimeout(context.Background(), 2*time.Second)
-	defer closeFn()
-	conn, err := redisconn.Connect(ctx, r.addr, redisconn.Opts{})
-	if err != nil {
-		return 0, err
-	}
-	r.conn = conn
+	r.client = redis.NewClient(&redis.Options{
+		Addr: r.addr,
+	})
 	return r.role()
 }
 
 func (r *Resp2Client) role() (iface.ReplicatorRole, error) {
-	res := redis.Sync{S: r.conn}.Do(CommandRole)
-	if err := redis.AsError(res); err != nil {
+	res, err := r.client.Do(context.Background(), CommandRole).Result()
+	if err != nil {
 		return 0, err
 	}
 	role := res.(int)
@@ -131,8 +126,8 @@ func (r *Resp2Client) syncAndRegister(seq iface.SequenceId, node string) ([]byte
 	if err != nil {
 		return nil, err
 	}
-	res := redis.Sync{S: r.conn}.Do(CommandSyncAndReg, node, dat)
-	if err := redis.AsError(res); err != nil {
+	res, err := r.client.Do(context.Background(), CommandSyncAndReg, node, dat).Result()
+	if err != nil {
 		return nil, err
 	}
 	return res.([]byte), nil
@@ -142,8 +137,8 @@ func (r *Resp2Client) walShip(dat []byte) error {
 	const retryCnt = 3
 	var rerr error
 	for i := 0; i < retryCnt; i++ {
-		res := redis.Sync{S: r.conn}.Do(CommandWalShip, dat)
-		if err := redis.AsError(res); err != nil {
+		res, err := r.client.Do(context.Background(), CommandWalShip, dat).Result()
+		if err != nil {
 			rerr = err
 			log.Println("Resp2Client wal ship failed, retry...")
 			time.Sleep(500 * time.Millisecond)
