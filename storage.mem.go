@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"sync"
 
 	"github.com/miekg/dns"
@@ -349,6 +350,9 @@ func (m *MemStore) Unwatch(node string) error {
 }
 
 func (m *MemStore) PutDomain(domain, resolve string, domainType shared.DomainType) {
+	// convert domain to lower case in order to achieve builtin case in-sensitive support
+	domain = strings.ToLower(domain)
+
 	defer m.rwlock.Unlock()
 	m.rwlock.Lock()
 
@@ -362,6 +366,9 @@ func (m *MemStore) PutDomain(domain, resolve string, domainType shared.DomainTyp
 }
 
 func (m *MemStore) ResolveDomain(domain string, domainType shared.DomainType) (string, error) {
+	// convert domain to lower case in order to achieve builtin case in-sensitive support
+	domain = strings.ToLower(domain)
+
 	defer m.rwlock.RUnlock()
 	m.rwlock.RLock()
 

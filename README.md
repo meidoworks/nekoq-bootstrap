@@ -81,14 +81,18 @@ Shared component types should be:
 * [X] DNS service discovery: TXT record
 * [X] DNS service discovery: SRV record
 * [X] DNS upstream name server support
+* [ ] DNS prefix specified upstream name server support
 * [X] DNS over http - rfc8484
 * [ ] DNS over https - rfc8484
 * [ ] DNS service discovery - AAAA/MX/CNAME(exclusive from A/AAAA)/Multiple A or AAAA for load balancing
 * [ ] DNS service discovery - SOA/PTR
+* [ ] DNS record load balancing via multiple records support - A/AAAA/SRV/etc.
+* [ ] Wildcard DNS record
 * [ ] DNS Sec
 * [ ] DNS TCP
 * [ ] Recursive DNS
 * [ ] Authority DNS Server
+* [ ] Environment specified dns records, e.g. internal access records or external access records
 * [ ] DNS caching and TTL
 * [ ] DNS recursion support
 * [ ] DNS Authoritative
