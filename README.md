@@ -81,6 +81,7 @@ Shared component types should be:
 * [X] DNS service discovery: TXT record
 * [X] DNS service discovery: SRV record
 * [X] DNS upstream name server support
+* [x] Default handler for unsupported dns query type - current NXDomain handler
 * [ ] DNS prefix specified upstream name server support
 * [X] DNS over http - rfc8484
 * [ ] DNS over https - rfc8484

@@ -88,7 +88,12 @@ func (d *DnsEndpoint) ProcessDnsMsg(r *dns.Msg, ctx *RequestContext) *dns.Msg {
 	ctx.AddTraceInfo(fmt.Sprint("resolve:t=", r.Question[0].Qtype, ",domain:", r.Question[0].Name))
 	handler, ok := d.HandlerMapping[r.Question[0].Qtype]
 	if !ok {
-		panic(errors.New("unknown request type:" + fmt.Sprint(r.Question[0].Qtype)))
+		ctx.AddTraceInfo("unknown request type:" + fmt.Sprint(r.Question[0].Qtype))
+		result, err := NotFoundUpstreamDns{}.HandleQuestion(r, ctx)
+		if err != nil {
+			panic(errors.New("error handling question:" + err.Error()))
+		}
+		return result
 	}
 	res, err := handler.HandleQuestion(r, ctx)
 	if err != nil {
