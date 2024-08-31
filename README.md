@@ -89,6 +89,7 @@ Shared component types should be:
 * [ ] DNS record load balancing via multiple records support - A/AAAA/SRV/etc.
 * [ ] Wildcard DNS record
 * [x] Enclosure DNS domain - domains with specific suffixes will not be leaked to upstream
+* [x] Enclosure DNS domain supports: A/AAAA/TXT/SRV
 * [ ] DNS Sec
 * [ ] DNS TCP
 * [ ] Recursive DNS

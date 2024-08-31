@@ -77,6 +77,8 @@ func (u *UpstreamDns) handleEnclosureDomains(ctx *RequestContext, domain string,
 	switch qtype {
 	case dns.TypeA:
 		key = "A"
+	case dns.TypeAAAA:
+		key = "AAAA"
 	case dns.TypeSRV:
 		key = "SRV"
 	case dns.TypeTXT:
