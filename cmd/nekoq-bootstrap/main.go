@@ -45,6 +45,12 @@ type Config struct {
 		EnableAuth     bool   `toml:"enable_auth"`
 		AccessPassword string `toml:"access_password"`
 	} `toml:"http"`
+	UpstreamDns struct {
+		EnclosureDomains []struct {
+			Type   string `toml:"type"`
+			Suffix string `toml:"suffix"`
+		} `toml:"enclosure_domains"`
+	} `toml:"upstream_dns"`
 }
 
 func main() {
@@ -113,7 +119,7 @@ func main() {
 			}
 		}
 		// create services
-		endpoint, err := dnscore.NewDnsEndpoint(config.Dns.Address, storage, config.Dns.UpstreamDnsServers, config.Main.Debug)
+		endpoint, err := dnscore.NewDnsEndpoint(config.Dns.Address, storage, config.Dns.UpstreamDnsServers, convertEnclosureDomainSuffix(config.UpstreamDns.EnclosureDomains), config.Main.Debug)
 		if err != nil {
 			panic(err)
 		}
@@ -160,4 +166,20 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-sigs
 	fmt.Println("signal received:", sig)
+}
+
+func convertEnclosureDomainSuffix(input []struct {
+	Type   string `toml:"type"`
+	Suffix string `toml:"suffix"`
+}) (r []struct {
+	Type   string
+	Suffix string
+}) {
+	for _, v := range input {
+		r = append(r, struct {
+			Type   string
+			Suffix string
+		}{Type: v.Type, Suffix: v.Suffix})
+	}
+	return
 }

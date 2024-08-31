@@ -20,7 +20,10 @@ type DnsEndpoint struct {
 	HandlerMapping map[uint16]DnsRecordHandler
 }
 
-func NewDnsEndpoint(addr string, storage DnsStorage, upstreams []string, debug bool) (*DnsEndpoint, error) {
+func NewDnsEndpoint(addr string, storage DnsStorage, upstreams []string, enclosureDomainSuffixes []struct {
+	Type   string
+	Suffix string
+}, debug bool) (*DnsEndpoint, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
@@ -40,7 +43,7 @@ func NewDnsEndpoint(addr string, storage DnsStorage, upstreams []string, debug b
 	{
 		var parentHandler DnsRecordHandler
 		if len(upstreams) > 0 {
-			parentHandler = NewUpstreamDNSWithSingle(upstreams[0])
+			parentHandler = NewUpstreamDNSWithSingle(upstreams, enclosureDomainSuffixes)
 		}
 		endpoint.HandlerMapping[dns.TypeA] = NewRecordAHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 		endpoint.HandlerMapping[dns.TypeTXT] = NewRecordTxtHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
