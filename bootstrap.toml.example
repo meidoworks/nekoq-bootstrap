@@ -29,7 +29,11 @@ upstream_dns_servers = ["192.168.1.111"]
 
 [upstream_dns]
 enclosure_domains = [
-    {type = "A", suffix = "exclude.example.com"}
+    {type = "A", suffix = "exclude.example.com"},
+    {type = "AAAA", suffix = "exclude.example.com"},
+    {type = "PTR", suffix = "10.in-addr.arpa"},
+    {type = "PTR", suffix = "168.192.in-addr.arpa"},
+    {type = "PTR", suffix = "d.f.ip6.arpa"},
 ]
 
 [dns.static_rule.A]

@@ -83,6 +83,8 @@ func (u *UpstreamDns) handleEnclosureDomains(ctx *RequestContext, domain string,
 		key = "SRV"
 	case dns.TypeTXT:
 		key = "TXT"
+	case dns.TypePTR:
+		key = "PTR"
 	default:
 		return nil // not supported type for enclosure domain matching
 	}
