@@ -91,7 +91,7 @@ func (d *DnsEndpoint) ProcessDnsMsg(r *dns.Msg, ctx *RequestContext) *dns.Msg {
 	// query cache
 	if res := d.Cache.Get(r); res != nil {
 		ctx.AddTraceInfoWithDnsAnswersIfNoError("hit_mem_cache", res, nil)
-		return res.Copy().SetReply(r)
+		return res
 	}
 	// query pipeline
 	handler, ok := d.HandlerMapping[r.Question[0].Qtype]

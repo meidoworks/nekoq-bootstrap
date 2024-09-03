@@ -66,7 +66,7 @@ func (d *DnsMemCache) Get(req *dns.Msg) *dns.Msg {
 	if time.Now().Unix()-r.timeInSec > int64(r.ttl) {
 		return nil
 	} else {
-		return r.res //FIXME perhaps we need to update ttl in the response
+		return r.res.Copy().SetReply(req) //FIXME perhaps we need to update ttl in the response
 	}
 }
 
