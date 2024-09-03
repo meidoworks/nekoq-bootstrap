@@ -12,6 +12,7 @@ import (
 type DnsEndpoint struct {
 	Storage DnsStorage
 	Server  *dns.Server
+	Cache   DnsCache
 
 	Addr string
 
@@ -32,6 +33,7 @@ func NewDnsEndpoint(addr string, storage DnsStorage, upstreams []string, enclosu
 	endpoint := new(DnsEndpoint)
 	endpoint.Addr = addr
 	endpoint.Storage = storage
+	endpoint.Cache = NewDnsMemCache()
 	endpoint.Server = &dns.Server{
 		Addr:    u.Host,
 		Net:     u.Scheme,
@@ -86,6 +88,12 @@ func (d *DnsEndpoint) ProcessDnsMsg(r *dns.Msg, ctx *RequestContext) *dns.Msg {
 	}
 
 	ctx.AddTraceInfo(fmt.Sprint("resolve:t=", r.Question[0].Qtype, ",domain:", r.Question[0].Name))
+	// query cache
+	if res := d.Cache.Get(r); res != nil {
+		ctx.AddTraceInfoWithDnsAnswersIfNoError("hit_mem_cache", res, nil)
+		return res.Copy().SetReply(r)
+	}
+	// query pipeline
 	handler, ok := d.HandlerMapping[r.Question[0].Qtype]
 	if !ok {
 		ctx.AddTraceInfo("unknown request type:" + fmt.Sprint(r.Question[0].Qtype))
@@ -99,5 +107,7 @@ func (d *DnsEndpoint) ProcessDnsMsg(r *dns.Msg, ctx *RequestContext) *dns.Msg {
 	if err != nil {
 		panic(errors.New("dns request failed. " + err.Error()))
 	}
+	// cache result
+	d.Cache.Put(r, res)
 	return res
 }

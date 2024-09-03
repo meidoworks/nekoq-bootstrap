@@ -28,6 +28,7 @@ http_listener="tcp://0.0.0.0:8153"
 upstream_dns_servers = ["192.168.1.111"]
 
 [upstream_dns]
+# suggest to add all private ipv4/ipv6 addresses in this list in order to avoid potential long time waiting caused by upstream PTR queries
 enclosure_domains = [
     {type = "A", suffix = "exclude.example.com"},
     {type = "AAAA", suffix = "exclude.example.com"},

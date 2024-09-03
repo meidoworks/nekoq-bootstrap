@@ -96,10 +96,12 @@ Shared component types should be:
 * [ ] Recursive DNS
 * [ ] Authority DNS Server
 * [ ] Environment specified dns records, e.g. internal access records or external access records
-* [ ] DNS caching and TTL
+* [x] DNS caching
+* [ ] DNS TTL(both managed records and upstream responses)
 * [ ] DNS recursion support
 * [ ] DNS Authoritative
 * [x] DNS resolve tracing log
+* [ ] Standardize
 
 ### Http module
 
