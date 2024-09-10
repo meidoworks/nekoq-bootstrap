@@ -2,7 +2,6 @@ package dnscore
 
 import (
 	"errors"
-	"log"
 
 	"github.com/miekg/dns"
 
@@ -27,7 +26,7 @@ func NewRecordPtrHandler(parent DnsRecordHandler, storage DnsStorage, debug bool
 func (r *RecordPtrHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
 	domain := m.Question[0].Name
 	if r.debugOutput {
-		log.Println("[DEBUG][RecordPtrHandler] domain:", domain)
+		logger.Debug("[RecordPtrHandler] domain:", domain)
 	}
 
 	ctx.AddTraceInfo("RecordPtrHandler")

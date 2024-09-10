@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -57,11 +56,11 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Println("[ERROR] process dns-http request failed. information:", err)
+			logger.Error("process dns-http request failed. information:", err)
 			reqCtx.AddTraceInfo("error occurs:" + fmt.Sprint(err))
 		}
 		if this.DebugPrintDnsRequest {
-			log.Println("[DEBUG] Domain resolve info via http-dns:", reqCtx.GetTraceInfoString())
+			logger.Debug("Domain resolve info:", reqCtx.GetTraceInfoString())
 		}
 	}()
 
@@ -79,7 +78,7 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "application/dns-message" {
-		log.Println("[ERROR] unsupported content-type:", contentType)
+		logger.Error("unsupported content-type:", contentType)
 		w.WriteHeader(415)
 		return
 	}
@@ -110,11 +109,11 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 	case http.MethodGet:
 		requestBase64 := r.FormValue("dns")
 		if this.DebugPrintDnsRequest {
-			log.Println("[DEBUG] dns-http get dns raw:", requestBase64)
+			logger.Debug("dns-http get dns base64:", requestBase64)
 		}
 		requestBinary, err := base64.RawURLEncoding.DecodeString(requestBase64)
 		if err != nil {
-			log.Println("[ERROR] decode dns raw error:", err)
+			logger.Error("decode dns raw error:", err)
 			w.WriteHeader(400)
 			return
 		}
@@ -122,7 +121,7 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 	case http.MethodPost:
 		requestBinary, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Println("[ERROR] read dns raw error:", err)
+			logger.Error("read dns raw error:", err)
 			w.WriteHeader(400)
 			return
 		}
@@ -131,7 +130,7 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 		panic(errors.New("unsupported http method"))
 	}
 	if len(reqBin) == 0 {
-		log.Println("[ERROR] dns raw is empty")
+		logger.Error("dns raw is empty")
 		w.WriteHeader(400)
 		return
 	}
@@ -139,7 +138,7 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 	msg := new(dns.Msg)
 	err := msg.Unpack(reqBin)
 	if err != nil {
-		log.Println("[ERROR] dns unpack err:", err)
+		logger.Error("dns unpack err:", err)
 		w.WriteHeader(400)
 		return
 	}
@@ -154,13 +153,13 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 
 	replyBin, err := reply.Pack()
 	if err != nil {
-		log.Println("[ERROR] dns pack err:", err)
+		logger.Error("dns pack err:", err)
 		w.WriteHeader(500)
 		return
 	}
 	_, err = w.Write(replyBin)
 	if err != nil {
-		log.Printf("failed to write to client: %v\n", err)
+		logger.ErrorF("failed to write to client: %v\n", err)
 	}
 
 }

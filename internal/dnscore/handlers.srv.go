@@ -3,7 +3,6 @@ package dnscore
 import (
 	"encoding/json"
 	"errors"
-	"log"
 
 	"github.com/miekg/dns"
 
@@ -28,7 +27,7 @@ func NewRecordSRVHandler(parent DnsRecordHandler, storage DnsStorage, debug bool
 func (r *RecordSRVHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
 	domain := m.Question[0].Name
 	if r.debugOutput {
-		log.Println("[DEBUG][RecordSRVHandler] domain:", domain)
+		logger.Debug("[RecordSRVHandler] domain:", domain)
 	}
 
 	ctx.AddTraceInfo("RecordSRVHandler")

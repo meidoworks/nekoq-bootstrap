@@ -3,7 +3,6 @@ package dnscore
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 
 	"github.com/miekg/dns"
@@ -66,11 +65,11 @@ func (d *DnsEndpoint) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Println("[ERROR] process dns request failed. information:", err)
+			logger.Error("process dns request failed. information:", err)
 			reqCtx.AddTraceInfo("error occurs:" + fmt.Sprint(err))
 		}
 		if d.DebugPrintDnsRequest {
-			log.Println("[DEBUG] Domain resolve info:", reqCtx.GetTraceInfoString())
+			logger.Debug("Domain resolve info:", reqCtx.GetTraceInfoString())
 		}
 	}()
 

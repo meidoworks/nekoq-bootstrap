@@ -2,7 +2,6 @@ package dnscore
 
 import (
 	"errors"
-	"log"
 
 	"github.com/miekg/dns"
 
@@ -27,7 +26,7 @@ func NewRecordTxtHandler(parent DnsRecordHandler, storage DnsStorage, debug bool
 func (r *RecordTxtHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
 	domain := m.Question[0].Name
 	if r.debugOutput {
-		log.Println("[DEBUG][RecordTxtHandler] domain:", domain)
+		logger.Debug("[RecordTxtHandler] domain:", domain)
 	}
 
 	ctx.AddTraceInfo("RecordTxtHandler")
