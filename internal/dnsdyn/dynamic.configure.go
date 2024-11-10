@@ -1,0 +1,162 @@
+package dnsdyn
+
+import (
+	"log"
+	"strings"
+	"sync/atomic"
+
+	"github.com/BurntSushi/toml"
+	"github.com/meidoworks/nekoq-component/configure/configapi"
+	"github.com/meidoworks/nekoq-component/configure/configclient"
+	"github.com/miekg/dns"
+
+	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
+	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
+)
+
+type ConfigureContainer struct {
+	A   map[string]string `toml:"A"`
+	TXT map[string]string `toml:"TXT"`
+	SRV map[string]string `toml:"SRV"`
+	PTR map[string]string `toml:"PTR"`
+}
+
+type ResolveContainer struct {
+	A   map[string]string
+	TXT map[string]string
+	SRV map[string]string
+	PTR map[string]string
+}
+
+func NewResolveContainer() *ResolveContainer {
+	return &ResolveContainer{
+		A:   map[string]string{},
+		TXT: map[string]string{},
+		SRV: map[string]string{},
+		PTR: map[string]string{},
+	}
+}
+
+type DnsDynConfStore struct {
+	serverLists []string
+
+	client *configclient.Client
+	adv    *configclient.ClientAdv
+
+	container *atomic.Value
+}
+
+func (d *DnsDynConfStore) GetContainer() *ResolveContainer {
+	return d.container.Load().(*ResolveContainer)
+}
+
+func NewDnsDynConfStore(serverList []string) *DnsDynConfStore {
+	rcVal := new(atomic.Value)
+	rcVal.Store(NewResolveContainer())
+	return &DnsDynConfStore{
+		serverLists: serverList,
+		container:   rcVal,
+	}
+}
+
+func (d *DnsDynConfStore) Startup() error {
+	container := new(configclient.ConfigContainer[*ConfigureContainer])
+	container.OnChange = d.onChange
+
+	sel := new(configapi.Selectors)
+	if err := sel.Fill("app=nekoq-bootstrap,dc=default,env=PROD"); err != nil {
+		return err
+	}
+	client := configclient.NewClient(d.serverLists, configclient.ClientOptions{
+		OverrideSelectors: sel,
+	})
+	adv := configclient.NewClientAdv(client)
+	err := container.Register(adv, "nekoq-bootstrap.dns", "records", toml.Unmarshal)
+	if err != nil {
+		defer func(client *configclient.Client) {
+			err := client.StopClient()
+			if err != nil {
+				log.Println("stop client failed:", err)
+			}
+		}(client)
+		return err
+	}
+	d.client = client
+	d.adv = adv
+	if err := client.StartClient(); err != nil {
+		defer func(client *configclient.Client) {
+			err := client.StopClient()
+			if err != nil {
+				log.Println("stop client failed:", err)
+			}
+		}(client)
+		return err
+	}
+	return nil
+}
+
+func (d *DnsDynConfStore) Stop() error {
+	return d.client.StopClient()
+}
+
+func (d *DnsDynConfStore) onChange(cfg configapi.Configuration, container *ConfigureContainer) {
+	log.Println("receive dns record change.")
+	if err := d.process(container); err != nil {
+		log.Println("process dns record change failed:", err)
+	} else {
+		log.Println("process dns record change success.")
+	}
+}
+
+func (d *DnsDynConfStore) ResolveDomain(domain string, domainType shared.DomainType) (string, error) {
+	domain = strings.ToLower(domain)
+
+	switch domainType {
+	case shared.DomainTypeA:
+		val, ok := d.GetContainer().A[domain]
+		if ok {
+			return val, nil
+		}
+	case shared.DomainTypeTxt:
+		val, ok := d.GetContainer().TXT[domain]
+		if ok {
+			return val, nil
+		}
+	case shared.DomainTypeSrv:
+		val, ok := d.GetContainer().SRV[domain]
+		if ok {
+			return val, nil
+		}
+	case shared.DomainTypePtr:
+		val, ok := d.GetContainer().PTR[domain]
+		if ok {
+			return val, nil
+		}
+	}
+
+	return "", shared.ErrStorageNotFound
+}
+
+func (d *DnsDynConfStore) PutDomain(domain, resolve string, domainType shared.DomainType) {
+	panic("unsupported")
+}
+
+func (d *DnsDynConfStore) process(container *ConfigureContainer) error {
+	rc := NewResolveContainer()
+	for key, val := range container.A {
+		rc.A[dns.Fqdn(strings.ToLower(key))] = val
+	}
+	for key, val := range container.TXT {
+		rc.TXT[dns.Fqdn(strings.ToLower(key))] = val
+	}
+	for key, val := range container.SRV {
+		rc.SRV[dns.Fqdn(strings.ToLower(key))] = val
+	}
+	for key, val := range container.PTR {
+		domain := dnscore.FromIPAddressToPtrFqdn(key)
+		resolve := dns.Fqdn(strings.ToLower(val))
+		rc.PTR[domain] = resolve
+	}
+	d.container.Store(rc)
+	return nil
+}

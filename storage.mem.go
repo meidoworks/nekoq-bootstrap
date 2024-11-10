@@ -3,11 +3,13 @@ package bootstrap
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"strings"
 	"sync"
 
 	"github.com/miekg/dns"
 
+	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
 	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
 )
 
@@ -34,6 +36,8 @@ type MemStore struct {
 	}
 
 	rwlock sync.RWMutex
+
+	dnsStores []dnscore.DnsStorage
 }
 
 func (this *MemStore) GetServiceList(service string) ([]*ServiceItem, error) {
@@ -369,23 +373,43 @@ func (m *MemStore) ResolveDomain(domain string, domainType shared.DomainType) (s
 	// convert domain to lower case in order to achieve builtin case in-sensitive support
 	domain = strings.ToLower(domain)
 
-	defer m.rwlock.RUnlock()
-	m.rwlock.RLock()
+	f := func() (string, error) {
+		defer m.rwlock.RUnlock()
+		m.rwlock.RLock()
 
-	sub, ok := m.staticDomainMapping[domainType]
-	if !ok {
-		return "", shared.ErrStorageNotFound
+		sub, ok := m.staticDomainMapping[domainType]
+		if !ok {
+			return "", shared.ErrStorageNotFound
+		}
+		r, ok := sub[domain]
+		if !ok {
+			return "", shared.ErrStorageNotFound
+		}
+		return r, nil
 	}
-	r, ok := sub[domain]
-	if !ok {
+	if val, err := f(); errors.Is(err, shared.ErrStorageNotFound) {
+		// nested stores
+		for _, store := range m.dnsStores {
+			if val, err := store.ResolveDomain(domain, domainType); errors.Is(err, shared.ErrStorageNotFound) {
+				continue
+			} else if err != nil {
+				log.Println("error occurs while invoking nested dns store:", err)
+				continue
+			} else {
+				return val, nil
+			}
+		}
 		return "", shared.ErrStorageNotFound
+	} else if err != nil {
+		return "", err
+	} else {
+		return val, nil
 	}
-	return r, nil
 }
 
 var _ Storage = new(MemStore)
 
-func NewMemStore() *MemStore {
+func NewMemStore(nested []dnscore.DnsStorage) *MemStore {
 	store := new(MemStore)
 	store.staticDomainMapping = make(map[shared.DomainType]map[string]string)
 	store.services = make(map[string]map[string]struct {
@@ -399,5 +423,6 @@ func NewMemStore() *MemStore {
 		Add []*dataTransferNodeData
 		Del []*dataTransferNodeData
 	})
+	store.dnsStores = nested
 	return store
 }

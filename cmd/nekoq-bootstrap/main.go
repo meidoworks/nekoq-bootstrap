@@ -13,6 +13,7 @@ import (
 
 	bootstrap "github.com/meidoworks/nekoq-bootstrap"
 	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
+	"github.com/meidoworks/nekoq-bootstrap/internal/dnsdyn"
 	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
 )
 
@@ -40,6 +41,9 @@ type Config struct {
 			PTR map[string]string `toml:"PTR"`
 		} `toml:"static_rule"`
 	} `toml:"dns"`
+	DnsDyn *struct {
+		Servers []string `toml:"servers"`
+	} `toml:"dns_dyn"`
 	Http struct {
 		Listener       string `toml:"listener"`
 		EnableAuth     bool   `toml:"enable_auth"`
@@ -66,10 +70,23 @@ func main() {
 	}
 	var _ = m
 
+	var dnsStores []dnscore.DnsStorage
+	// dynamic configure
+	if config.DnsDyn != nil {
+		log.Println("DnsDyn enabled at servers:", config.DnsDyn.Servers)
+		store := dnsdyn.NewDnsDynConfStore(config.DnsDyn.Servers)
+		if err := store.Startup(); err != nil {
+			panic(err)
+		}
+		dnsStores = append(dnsStores, store)
+	} else {
+		log.Println("DnsDyn disabled.")
+	}
+
 	var storage bootstrap.Storage
 	switch config.Main.StorageProvider {
 	case "mem":
-		storage = bootstrap.NewMemStore()
+		storage = bootstrap.NewMemStore(dnsStores)
 	default:
 		panic(errors.New("unknown storage provider"))
 	}

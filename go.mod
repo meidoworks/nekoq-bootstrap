@@ -9,6 +9,7 @@ require (
 	github.com/go-resty/resty/v2 v2.15.3
 	github.com/google/gops v0.3.28
 	github.com/julienschmidt/httprouter v1.3.0
+	github.com/meidoworks/nekoq-component v0.10.14
 	github.com/miekg/dns v1.1.62
 	github.com/peterbourgon/diskv/v3 v3.0.1
 	github.com/redis/go-redis/v9 v9.7.0

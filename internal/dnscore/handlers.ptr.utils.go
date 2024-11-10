@@ -45,6 +45,6 @@ func AddIpReverseDnsToStorage(storage DnsStorage, ipStr, domain string) error {
 		return errors.New("invalid IP address:" + ipStr)
 	}
 	rDomain := FromIPAddressToPtrFqdn(ipStr)
-	storage.PutDomain(rDomain, dns.Fqdn(domain), shared.DomainTypePtr)
+	storage.PutDomain(rDomain, dns.Fqdn(strings.ToLower(domain)), shared.DomainTypePtr)
 	return nil
 }
