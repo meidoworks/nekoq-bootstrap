@@ -1,7 +1,6 @@
 package dnsdyn
 
 import (
-	"log"
 	"strings"
 	"sync/atomic"
 
@@ -76,7 +75,7 @@ func (d *DnsDynConfStore) Startup() error {
 		defer func(client *configclient.Client) {
 			err := client.StopClient()
 			if err != nil {
-				log.Println("stop client failed:", err)
+				logger.Error("stop client failed:", err)
 			}
 		}(client)
 		return err
@@ -87,7 +86,7 @@ func (d *DnsDynConfStore) Startup() error {
 		defer func(client *configclient.Client) {
 			err := client.StopClient()
 			if err != nil {
-				log.Println("stop client failed:", err)
+				logger.Error("stop client failed:", err)
 			}
 		}(client)
 		return err
@@ -100,11 +99,11 @@ func (d *DnsDynConfStore) Stop() error {
 }
 
 func (d *DnsDynConfStore) onChange(cfg configapi.Configuration, container *ConfigureContainer) {
-	log.Println("receive dns record change.")
+	logger.Info("receive dns record change.")
 	if err := d.process(container); err != nil {
-		log.Println("process dns record change failed:", err)
+		logger.Error("process dns record change failed:", err)
 	} else {
-		log.Println("process dns record change success.")
+		logger.Info("process dns record change success.")
 	}
 }
 

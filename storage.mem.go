@@ -3,7 +3,6 @@ package bootstrap
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"strings"
 	"sync"
 
@@ -11,11 +10,14 @@ import (
 
 	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
 	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
+	"github.com/meidoworks/nekoq-bootstrap/logging"
 )
 
 const (
 	_DefaultDataKey = "__default__"
 )
+
+var logger = logging.Manager.GetLogger("storage")
 
 type MemStore struct {
 	staticDomainMapping map[shared.DomainType]map[string]string
@@ -393,7 +395,7 @@ func (m *MemStore) ResolveDomain(domain string, domainType shared.DomainType) (s
 			if val, err := store.ResolveDomain(domain, domainType); errors.Is(err, shared.ErrStorageNotFound) {
 				continue
 			} else if err != nil {
-				log.Println("error occurs while invoking nested dns store:", err)
+				logger.Error("error occurs while invoking nested dns store:", err)
 				continue
 			} else {
 				return val, nil

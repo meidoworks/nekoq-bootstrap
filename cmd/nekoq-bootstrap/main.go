@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +14,10 @@ import (
 	"github.com/meidoworks/nekoq-bootstrap/internal/dnscore"
 	"github.com/meidoworks/nekoq-bootstrap/internal/dnsdyn"
 	"github.com/meidoworks/nekoq-bootstrap/internal/shared"
+	"github.com/meidoworks/nekoq-bootstrap/logging"
 )
+
+var logger = logging.Manager.GetLogger("main")
 
 type Config struct {
 	Main struct {
@@ -60,7 +62,8 @@ type Config struct {
 func main() {
 	// init gops
 	if err := agent.Listen(agent.Options{}); err != nil {
-		log.Fatal(err)
+		logger.Error(err)
+		panic(err)
 	}
 
 	config := new(Config)
@@ -73,14 +76,14 @@ func main() {
 	var dnsStores []dnscore.DnsStorage
 	// dynamic configure
 	if config.DnsDyn != nil {
-		log.Println("DnsDyn enabled at servers:", config.DnsDyn.Servers)
+		logger.Info("DnsDyn enabled at servers:", config.DnsDyn.Servers)
 		store := dnsdyn.NewDnsDynConfStore(config.DnsDyn.Servers)
 		if err := store.Startup(); err != nil {
 			panic(err)
 		}
 		dnsStores = append(dnsStores, store)
 	} else {
-		log.Println("DnsDyn disabled.")
+		logger.Info("DnsDyn disabled.")
 	}
 
 	var storage bootstrap.Storage
@@ -145,8 +148,8 @@ func main() {
 			panic(err)
 		}
 
-		log.Println("[INFO] start dns module at", config.Dns.Address)
-		log.Println("[INFO] start dns-http module at", config.Dns.HttpAddress)
+		logger.Info("[INFO] start dns module at", config.Dns.Address)
+		logger.Info("[INFO] start dns-http module at", config.Dns.HttpAddress)
 
 		//TODO deferred
 		go func() {
