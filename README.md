@@ -140,7 +140,38 @@ Shared component types should be:
 
 * [ ] Combine dns module and http module
 
-## 4. Design
+## 4. User Guide
+
+### Dynamic configure DNS records via web manager
+
+Make sure the following items are created on onlyconfig web manager
+
+```text
+application: nekoq-bootstrap
+environment: PROD
+datacenter: default
+namespace: nekoq-bootstrap.dns
+key: records
+```
+
+Content template
+
+```text
+[A]
+"node1.example.dns"="127.0.0.1"
+
+[TXT]
+"node1.example.dns"="Hello World"
+
+[SRV]
+"node1.example.dns"='{"priority":10,"weight":20,"port":30,"target":"service.node1.example.dns"}'
+
+[PTR]
+"8.8.8.8" = 'demo1.example.com'
+
+```
+
+## 5. Design
 
 ### Cluster design
 
@@ -165,7 +196,7 @@ However, the drawbacks of this design is:
 
 * Keep as minimum dependencies as possible
 
-## 5. Changelog
+## 6. Changelog
 
 ### Planning
 
