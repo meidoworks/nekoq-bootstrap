@@ -1,6 +1,7 @@
 package dnsdyn
 
 import (
+	"context"
 	"strings"
 	"sync/atomic"
 
@@ -89,6 +90,10 @@ func (d *DnsDynConfStore) Startup() error {
 				logger.Error("stop client failed:", err)
 			}
 		}(client)
+		return err
+	}
+	if err := client.WaitStartupConfigureLoaded(context.Background()); err != nil {
+		logger.Error("wait startupConfigureLoaded failed:", err)
 		return err
 	}
 	return nil
