@@ -4,9 +4,9 @@ go 1.23.0
 
 require (
 	github.com/BurntSushi/toml v1.4.0
-	github.com/FimGroup/logging v1.2.0
+	github.com/FimGroup/logging v1.2.1
 	github.com/fxamacker/cbor/v2 v2.7.0
-	github.com/go-resty/resty/v2 v2.15.3
+	github.com/go-resty/resty/v2 v2.16.2
 	github.com/google/gops v0.3.28
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/meidoworks/nekoq-component v0.10.14
