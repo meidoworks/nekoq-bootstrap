@@ -50,6 +50,7 @@ func NewDnsEndpoint(addr string, storage DnsStorage, upstreams []string, enclosu
 		endpoint.HandlerMapping[dns.TypeTXT] = NewRecordTxtHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 		endpoint.HandlerMapping[dns.TypeSRV] = NewRecordSRVHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 		endpoint.HandlerMapping[dns.TypePTR] = NewRecordPtrHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
+		endpoint.HandlerMapping[dns.TypeAAAA] = NewRecordAAAAHandler(parentHandler, storage, endpoint.DebugPrintDnsRequest)
 	}
 
 	return endpoint, nil

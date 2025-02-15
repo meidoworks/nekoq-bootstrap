@@ -15,25 +15,28 @@ import (
 )
 
 type ConfigureContainer struct {
-	A   map[string]string `toml:"A"`
-	TXT map[string]string `toml:"TXT"`
-	SRV map[string]string `toml:"SRV"`
-	PTR map[string]string `toml:"PTR"`
+	A    map[string]string `toml:"A"`
+	TXT  map[string]string `toml:"TXT"`
+	SRV  map[string]string `toml:"SRV"`
+	PTR  map[string]string `toml:"PTR"`
+	AAAA map[string]string `toml:"AAAA"`
 }
 
 type ResolveContainer struct {
-	A   map[string]string
-	TXT map[string]string
-	SRV map[string]string
-	PTR map[string]string
+	A    map[string]string
+	TXT  map[string]string
+	SRV  map[string]string
+	PTR  map[string]string
+	AAAA map[string]string
 }
 
 func NewResolveContainer() *ResolveContainer {
 	return &ResolveContainer{
-		A:   map[string]string{},
-		TXT: map[string]string{},
-		SRV: map[string]string{},
-		PTR: map[string]string{},
+		A:    map[string]string{},
+		TXT:  map[string]string{},
+		SRV:  map[string]string{},
+		PTR:  map[string]string{},
+		AAAA: map[string]string{},
 	}
 }
 
@@ -136,6 +139,11 @@ func (d *DnsDynConfStore) ResolveDomain(domain string, domainType shared.DomainT
 		if ok {
 			return val, nil
 		}
+	case shared.DomainTypeAAAA:
+		val, ok := d.GetContainer().AAAA[domain]
+		if ok {
+			return val, nil
+		}
 	}
 
 	return "", shared.ErrStorageNotFound
@@ -160,6 +168,9 @@ func (d *DnsDynConfStore) process(container *ConfigureContainer) error {
 		domain := dnscore.FromIPAddressToPtrFqdn(key)
 		resolve := dns.Fqdn(strings.ToLower(val))
 		rc.PTR[domain] = resolve
+	}
+	for key, val := range container.AAAA {
+		rc.AAAA[dns.Fqdn(strings.ToLower(key))] = val
 	}
 	d.container.Store(rc)
 	return nil

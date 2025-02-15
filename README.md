@@ -82,6 +82,7 @@ Shared component types should be:
 ### DNS module
 
 * [X] DNS service discovery: A record
+* [X] DNS service discovery: AAAA record
 * [X] DNS service discovery: TXT record
 * [X] DNS service discovery: SRV record
 * [X] DNS upstream name server support

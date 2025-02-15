@@ -9,6 +9,7 @@ const (
 	DomainTypeTxt
 	DomainTypeSrv
 	DomainTypePtr
+	DomainTypeAAAA
 )
 
 var ErrStorageNotFound = errors.New("not found")
