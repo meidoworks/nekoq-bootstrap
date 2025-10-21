@@ -1,6 +1,7 @@
 package dnscore
 
 import (
+	"fmt"
 	"net"
 	"strings"
 
@@ -8,12 +9,29 @@ import (
 )
 
 type NotFoundUpstreamDns struct {
+	RespondNXDomainForAAAA bool
 }
 
 func (u NotFoundUpstreamDns) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
 	ctx.AddTraceInfo("NotFoundUpstreamDns")
 	reply := new(dns.Msg)
-	reply.SetRcode(m, dns.RcodeNameError)
+	//FIXME Not good to directly respond NXDomain due to the reason in the below.
+	// Should check if there is any other types to the same domain name and determine to respond NXDomain or NOERROR.
+	var defaultRcode = dns.RcodeNameError
+	//Debug tool: resolvectl show-cache
+	//Example output for a domain:
+	// docker-pull.registry.internal IN A 10.11.0.3
+	// docker-pull.registry.internal IN ANY NXDOMAIN
+	//The resolver will send A and AAAA in parallel.
+	//The 2nd entry should be related to AAAA type rather than ANY, which causes the issue.
+	//Solutions:
+	// 1. Respond NOERROR when resolving AAAA rather than NXDOMAIN.
+	//    Explain: NXDOMAIN means "there are no records that have that name". If there are other records with the same name, but different types, the response you will see is NOERROR with zero records in the answer section.
+	if m.Question[0].Qtype == dns.TypeAAAA && !u.RespondNXDomainForAAAA {
+		defaultRcode = dns.RcodeSuccess
+	}
+	reply.SetRcode(m, defaultRcode)
+	ctx.AddTraceInfo(fmt.Sprint("NotFoundUpstreamDns-rcode:[", reply.Rcode, "]"))
 	return reply, nil
 }
 

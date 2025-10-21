@@ -44,7 +44,7 @@ type DnsDynConfStore struct {
 	serverLists []string
 
 	client *configclient.Client
-	adv    *configclient.ClientAdv
+	adv    *configclient.ClientAdv[*ConfigureContainer]
 
 	container *atomic.Value
 }
@@ -63,9 +63,6 @@ func NewDnsDynConfStore(serverList []string) *DnsDynConfStore {
 }
 
 func (d *DnsDynConfStore) Startup() error {
-	container := new(configclient.ConfigContainer[*ConfigureContainer])
-	container.OnChange = d.onChange
-
 	sel := new(configapi.Selectors)
 	if err := sel.Fill("app=nekoq-bootstrap,dc=default,env=PROD"); err != nil {
 		return err
@@ -73,8 +70,9 @@ func (d *DnsDynConfStore) Startup() error {
 	client := configclient.NewClient(d.serverLists, configclient.ClientOptions{
 		OverrideSelectors: sel,
 	})
-	adv := configclient.NewClientAdv(client)
-	err := container.Register(adv, "nekoq-bootstrap.dns", "records", toml.Unmarshal)
+	adv := configclient.NewClientAdv[*ConfigureContainer](client)
+	adv.OnChange = d.onChange
+	_, err := adv.Register("nekoq-bootstrap.dns", "records", toml.Unmarshal)
 	if err != nil {
 		defer func(client *configclient.Client) {
 			err := client.StopClient()
