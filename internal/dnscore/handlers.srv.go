@@ -52,7 +52,7 @@ func (r *RecordSRVHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns
 	reply := new(dns.Msg)
 	reply.SetReply(m)
 	rr := &dns.SRV{
-		Hdr:      dns.RR_Header{Name: domain, Rrtype: dns.TypeSRV, Class: dns.ClassINET, Ttl: 0},
+		Hdr:      dns.RR_Header{Name: domain, Rrtype: dns.TypeSRV, Class: dns.ClassINET, Ttl: DefaultResponseTTL},
 		Priority: srvData.Priority,
 		Weight:   srvData.Weight,
 		Port:     srvData.Port,

@@ -41,7 +41,7 @@ func (r *RecordTxtHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns
 	reply := new(dns.Msg)
 	reply.SetReply(m)
 	rr := &dns.TXT{
-		Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypeTXT, Class: dns.ClassINET, Ttl: 0},
+		Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypeTXT, Class: dns.ClassINET, Ttl: DefaultResponseTTL},
 		Txt: []string{result},
 	}
 	reply.Answer = append(reply.Answer, rr)

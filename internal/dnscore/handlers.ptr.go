@@ -41,7 +41,7 @@ func (r *RecordPtrHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns
 	reply := new(dns.Msg)
 	reply.SetReply(m)
 	rr := &dns.PTR{
-		Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypePTR, Class: dns.ClassINET, Ttl: 0},
+		Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypePTR, Class: dns.ClassINET, Ttl: DefaultResponseTTL},
 		Ptr: result,
 	}
 	reply.Answer = append(reply.Answer, rr)

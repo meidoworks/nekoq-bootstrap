@@ -42,7 +42,7 @@ func (r *RecordAAAAHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dn
 	reply := new(dns.Msg)
 	reply.SetReply(m)
 	rr := &dns.A{
-		Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
+		Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: DefaultResponseTTL},
 		A:   net.ParseIP(result),
 	}
 	reply.Answer = append(reply.Answer, rr)
