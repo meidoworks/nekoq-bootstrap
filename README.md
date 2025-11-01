@@ -111,6 +111,7 @@ Shared component types should be:
     * Via nekoq-component/configure and onlyconfig
     * Default location: selectors=`app=nekoq-bootstrap,dc=default,env=PROD`, group=`nekoq-bootstrap.dns`, key=`records`
     * Format: toml
+* [ ] Dispatch lookup
 
 ### Http module
 

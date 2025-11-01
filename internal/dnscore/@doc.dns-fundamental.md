@@ -4,6 +4,12 @@
 
 * Recursive lookup
 * Iterative lookup
+* (enhanced by nekoq/scaleX ecosystems) dispatch lookup
+    * similar to recursive lookup: requester -> recursive dispatcher
+    * dispatcher loads all suffix rules from upstream resolvers via specific protocol
+    * when resolving domains, dispatcher dispatches requests via suffix
+    * support fanout queries for undetermined suffixes and intersected suffixes
+    * purpose: advantages of traditional dns architecture + avoid resolving latency of miss hit
 
 ## 2. Role of DNS server
 
