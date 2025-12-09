@@ -1,3 +1,3 @@
 package dnscore
 
-const DefaultResponseTTL = 60
+const DefaultResponseTTL = 3600
