@@ -33,6 +33,8 @@ func (r *RecordAAAAHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dn
 	ctx.AddTraceInfo("RecordAAAAHandler")
 	result, err := r.DnsStorage.ResolveDomain(domain, shared.DomainTypeAAAA)
 	if errors.Is(err, shared.ErrStorageNotFound) {
+		//TODO may need to check if the A record with the same name exists
+		// In this case, empty AAAA or no AAAA response will be generated.
 		return r.ParentRecordHandler.HandleQuestion(m, ctx)
 	} else if err != nil {
 		return nil, err
@@ -41,9 +43,9 @@ func (r *RecordAAAAHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dn
 
 	reply := new(dns.Msg)
 	reply.SetReply(m)
-	rr := &dns.A{
-		Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: DefaultResponseTTL},
-		A:   net.ParseIP(result),
+	rr := &dns.AAAA{
+		Hdr:  dns.RR_Header{Name: domain, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: DefaultResponseTTL},
+		AAAA: net.ParseIP(result),
 	}
 	reply.Answer = append(reply.Answer, rr)
 	return reply, nil
