@@ -148,8 +148,8 @@ func main() {
 			panic(err)
 		}
 
-		logger.Info("[INFO] start dns module at", config.Dns.Address)
-		logger.Info("[INFO] start dns-http module at", config.Dns.HttpAddress)
+		logger.Info("[INFO] start dns module at ", config.Dns.Address)
+		logger.Info("[INFO] start dns-http module at ", config.Dns.HttpAddress)
 
 		//TODO deferred
 		go func() {
