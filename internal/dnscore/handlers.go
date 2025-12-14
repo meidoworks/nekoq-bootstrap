@@ -16,9 +16,8 @@ type ParentRecordHandler struct {
 func (c *ParentRecordHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dns.Msg, error) {
 	if c.Handler != nil {
 		return c.Handler.HandleQuestion(m, ctx)
-	} else {
-		return NotFoundUpstreamDns{}.HandleQuestion(m, ctx)
 	}
+	return NotFoundUpstreamDns{}.HandleQuestion(m, ctx)
 }
 
 type RecordAHandler struct {

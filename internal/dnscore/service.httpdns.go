@@ -151,6 +151,12 @@ func (this *DnsHttp) dnsQuery(w http.ResponseWriter, r *http.Request, _ httprout
 	w.Header().Set("Last-Modified", now)
 	w.Header().Set("Vary", "Accept")
 
+	//FIXME If the nil handling meets the standard?
+	if reply == nil {
+		w.WriteHeader(404)
+		return
+	}
+
 	replyBin, err := reply.Pack()
 	if err != nil {
 		logger.Error("dns pack err:", err)

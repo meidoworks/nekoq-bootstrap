@@ -75,6 +75,9 @@ func (d *DnsEndpoint) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	}()
 
 	reply := d.ProcessDnsMsg(r, reqCtx)
+	if reply == nil {
+		return
+	}
 	if err := w.WriteMsg(reply); err != nil {
 		panic(err)
 	}
@@ -105,6 +108,10 @@ func (d *DnsEndpoint) ProcessDnsMsg(r *dns.Msg, ctx *RequestContext) *dns.Msg {
 	}
 	res, err := handler.HandleQuestion(r, ctx)
 	if err != nil {
+		//FIXME Whether to store the nil result into cache?
+		if errors.Is(err, ErrDoNotRespondResult) {
+			return nil
+		}
 		panic(errors.New("dns request failed. " + err.Error()))
 	}
 	// cache result
