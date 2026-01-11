@@ -33,12 +33,13 @@ func (r *RecordAAAAHandler) HandleQuestion(m *dns.Msg, ctx *RequestContext) (*dn
 	ctx.AddTraceInfo("RecordAAAAHandler")
 	result, err := r.DnsStorage.ResolveDomain(domain, shared.DomainTypeAAAA)
 	if errors.Is(err, shared.ErrStorageNotFound) {
-		// May need to check if the A record with the same name exists
+		// Need to check if the A record with the same name exists
 		// In this case, empty AAAA or no AAAA response will be generated.
 		// This will break AAAA resolution flow if the AAAA record is provided by external.
-		//if r.checkIfARecordExists(domain) {
-		//	return NotFoundUpstreamDns{}.HandleQuestion(m, ctx)
-		//}
+		// But since the domain is managed by this software, A and AAAA records have to be configured together at all time.
+		if r.checkIfARecordExists(domain) {
+			return NotFoundUpstreamDns{}.HandleQuestion(m, ctx)
+		}
 
 		return r.ParentRecordHandler.HandleQuestion(m, ctx)
 	} else if err != nil {
